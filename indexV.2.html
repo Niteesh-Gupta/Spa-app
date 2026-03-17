@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Special Price Approval System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F1F5F9; --surface:#FFFFFF; --surface2:#F8FAFC; --surface3:#F1F5F9;
+  --navy:#0F2544; --navy2:#1E3A5F; --navy3:#2D5282;
+  --accent:#E07B1F; --accent-l:#FEF3C7; --accent-d:#B45309;
+  --green:#0B7A4E; --green-l:#DCFCE7; --green-m:#16A34A;
+  --red:#C0392B; --red-l:#FEE2E2;
+  --amber:#D97706; --amber-l:#FEF9C3;
+  --purple:#6D28D9; --purple-l:#EDE9FE;
+  --teal:#0D9488; --teal-l:#CCFBF1;
+  --blue-l:#EFF6FF;
+  --border:#CBD5E1; --border2:#E2E8F0;
+  --text:#0F172A; --text2:#334155; --muted:#64748B;
+  --shadow:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.12);
+  --r:8px; --r-sm:5px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--navy);height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 12px rgba(0,0,0,0.25);
+}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-size:14px;font-weight:700;letter-spacing:-.01em;}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.brand span{opacity:.4;font-weight:300;font-size:12px;margin-left:4px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 12px 4px 4px;}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.user-name{color:rgba(255,255,255,.85);font-size:11px;font-weight:500;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:calc(100vh - 54px);}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:210px;min-width:210px;background:var(--surface);
+  border-right:1px solid var(--border2);padding:20px 0;
+  position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto;
+}
+.sidebar-grp{margin-bottom:6px;}
+.sidebar-grp-label{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:8px 18px 6px;}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 18px;cursor:pointer;font-size:12px;font-weight:500;
+  color:var(--muted);transition:all .15s;border-left:3px solid transparent;
+  position:relative;
+}
+.nav-item:hover{background:var(--bg);color:var(--text2);}
+.nav-item.active{background:var(--blue-l);color:var(--navy2);border-left-color:var(--navy2);font-weight:700;}
+.nav-icon{font-size:14px;width:16px;text-align:center;}
+.nav-badge{
+  margin-left:auto;background:var(--accent);color:#fff;
+  font-size:9px;font-weight:800;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+
+/* ── MAIN ── */
+.main{flex:1;padding:24px 28px;overflow:auto;min-width:0;}
+.page{display:none;animation:fadeIn .2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+.ph-left{}
+.ph-title{font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-.02em;}
+.ph-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;border:none;transition:all .15s;white-space:nowrap;}
+.btn-navy{background:var(--navy);color:#fff;} .btn-navy:hover{background:var(--navy2);}
+.btn-accent{background:var(--accent);color:#fff;} .btn-accent:hover{background:var(--accent-d);}
+.btn-green{background:var(--green-m);color:#fff;} .btn-green:hover{background:var(--green);}
+.btn-red{background:var(--red);color:#fff;} .btn-red:hover{background:#A93226;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);} .btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn-xs{padding:3px 9px;font-size:10px;}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+.kpi{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--border);}
+.kpi.k-total{border-top-color:var(--navy3);}
+.kpi.k-green{border-top-color:var(--green-m);}
+.kpi.k-amber{border-top-color:var(--amber);}
+.kpi.k-red{border-top-color:var(--red);}
+.kpi.k-purple{border-top-color:var(--purple);}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+.kpi-val{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);}
+.kpi.k-green .kpi-val{color:var(--green-m);}
+.kpi.k-amber .kpi-val{color:var(--amber);}
+.kpi.k-red .kpi-val{color:var(--red);}
+.kpi.k-purple .kpi-val{color:var(--purple);}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
+.card-hd{padding:12px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.card-title{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:-.01em;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{background:var(--navy);color:rgba(255,255,255,.9);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.05em;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid var(--border2);vertical-align:middle;}
+tr:hover td{background:var(--bg);}
+tr:last-child td{border-bottom:none;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;letter-spacing:.03em;}
+.b-green{background:var(--green-l);color:var(--green);}
+.b-red{background:var(--red-l);color:var(--red);}
+.b-amber{background:var(--amber-l);color:var(--amber);}
+.b-navy{background:var(--blue-l);color:var(--navy2);}
+.b-purple{background:var(--purple-l);color:var(--purple);}
+.b-teal{background:var(--teal-l);color:var(--teal);}
+.b-grey{background:var(--surface3);color:var(--muted);}
+
+/* stage badges */
+.stage-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em;border:1px solid;}
+.stage-quot{background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE;}
+.stage-nego{background:#FEF9C3;color:#92400E;border-color:#FDE68A;}
+.stage-final{background:#DCFCE7;color:#14532D;border-color:#BBF7D0;}
+.stage-revised{background:#FEE2E2;color:#7F1D1D;border-color:#FECACA;}
+
+/* ── APPROVER TIER BADGE ── */
+.tier-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:.04em;}
+.tier-rsm{background:#DBEAFE;color:#1E40AF;}
+.tier-zsm{background:#EDE9FE;color:#5B21B6;}
+.tier-nsm{background:#FCE7F3;color:#9D174D;}
+.tier-cm{background:#FEF3C7;color:#78350F;border:1px solid #FDE68A;}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg.third{grid-column:span 1;}
+label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.inp,.sel,.txa{
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  padding:8px 11px;font-size:12px;font-family:inherit;
+  background:var(--surface);color:var(--text);transition:border .15s;width:100%;
+}
+.inp:focus,.sel:focus,.txa:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(45,82,130,.1);}
+.inp[readonly]{background:var(--surface3);color:var(--muted);}
+.txa{resize:vertical;min-height:72px;}
+
+.disc-pill{
+  background:var(--surface3);border:1.5px solid var(--border);border-radius:var(--r-sm);
+  padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;
+  text-align:center;transition:all .3s;
+}
+.disc-low{background:var(--green-l);border-color:#86EFAC;color:var(--green);}
+.disc-med{background:var(--amber-l);border-color:#FDE68A;color:var(--amber);}
+.disc-high{background:var(--purple-l);border-color:#C4B5FD;color:var(--purple);}
+.disc-critical{background:var(--red-l);border-color:#FECACA;color:var(--red);}
+
+/* tier indicator on form */
+.tier-indicator{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);
+  padding:10px 14px;display:flex;align-items:center;gap:10px;
+}
+.tier-indicator-icon{font-size:18px;}
+.tier-indicator-text{font-size:11px;color:var(--muted);}
+.tier-indicator-name{font-size:13px;font-weight:700;color:var(--navy);}
+
+/* extra info box */
+.extra-info-box{
+  background:linear-gradient(135deg,#FFF7ED,#FFFBEB);
+  border:1.5px solid #FED7AA;border-radius:var(--r);padding:18px 20px;margin-bottom:16px;
+}
+.extra-info-title{font-size:12px;font-weight:800;color:#92400E;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.extra-info-sub{font-size:11px;color:#B45309;margin-bottom:14px;line-height:1.6;}
+
+/* ── TIMELINE ── */
+.tl{padding:4px 0;}
+.tl-step{display:flex;gap:12px;position:relative;padding-bottom:18px;}
+.tl-step:last-child{padding-bottom:0;}
+.tl-step:not(:last-child)::after{content:'';position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--border2);}
+.tl-dot{width:26px;height:26px;min-width:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;z-index:1;}
+.tl-done{background:var(--green-l);color:var(--green);border:2px solid var(--green-m);}
+.tl-active{background:var(--amber-l);color:var(--amber);border:2px solid var(--amber);}
+.tl-pending{background:var(--surface3);color:var(--muted);border:2px solid var(--border);}
+.tl-rejected{background:var(--red-l);color:var(--red);border:2px solid var(--red);}
+.tl-body{flex:1;padding-top:3px;}
+.tl-role{font-size:11px;font-weight:700;color:var(--text);}
+.tl-name{font-size:10px;color:var(--muted);}
+.tl-stat{font-size:10px;margin-top:2px;}
+
+/* ── HISTORY CHAIN ── */
+.hist-chain{display:flex;flex-direction:column;gap:8px;}
+.hist-item{
+  background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:10px 14px;display:flex;align-items:center;gap:12px;
+}
+.hist-item.current{background:var(--blue-l);border-color:#BFDBFE;}
+.hist-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--navy2);min-width:72px;}
+.hist-detail{flex:1;font-size:11px;color:var(--muted);}
+.hist-arrow{color:var(--border);font-size:18px;margin:0 4px;}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(15,37,68,.5);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:10px;width:680px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(12px);transition:transform .25s;}
+.overlay.open .modal{transform:translateY(0);}
+.modal-hd{padding:16px 22px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-title{font-size:14px;font-weight:800;color:var(--navy);}
+.modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);line-height:1;padding:2px;}
+.modal-body{padding:22px;}
+.modal-ft{padding:14px 22px;border-top:1px solid var(--border2);display:flex;justify-content:flex-end;gap:8px;}
+
+/* ── SECTION DIVIDER ── */
+.sec-div{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
+
+/* ── AI PANEL ── */
+.ai-wrap{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:var(--r);padding:18px 22px;margin-bottom:16px;}
+.ai-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.ai-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.ai-ttl{font-size:13px;font-weight:700;color:#fff;}
+.ai-out{background:rgba(255,255,255,.07);border-radius:6px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.88);line-height:1.75;min-height:72px;white-space:pre-wrap;font-family:inherit;}
+.dots{display:inline-flex;gap:4px;align-items:center;}
+.dots span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:dp 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:.2s;}
+.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes dp{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;right:22px;padding:11px 18px;border-radius:var(--r-sm);font-size:12px;font-weight:600;box-shadow:var(--shadow-md);transform:translateY(60px);opacity:0;transition:all .3s;z-index:400;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-s{background:var(--green-m);color:#fff;}
+.toast-e{background:var(--red);color:#fff;}
+.toast-i{background:var(--navy);color:#fff;}
+
+/* ── FILTER ROW ── */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.filter-inp{border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;font-family:inherit;background:#fff;min-width:180px;}
+.filter-sel{border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;font-family:inherit;background:#fff;}
+
+/* ── TIER LEGEND ── */
+.tier-legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tier-leg-item{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border2);border-radius:4px;padding:6px 12px;font-size:10px;color:var(--text2);}
+
+/* ── DETAIL GRID ── */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.dg-item{}
+.dg-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;}
+.dg-val{font-size:12px;font-weight:600;color:var(--text);}
+
+/* responsive */
+@media(max-width:900px){
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
+  .form-grid{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    Special Price Approval System
+    <span>/ v2.0 Enterprise</span>
+  </div>
+  <div class="topbar-right">
+    <div class="user-pill">
+      <div class="avatar" id="topbar-avatar">AM</div>
+      <span class="user-name" id="topbar-user">Arjun Mehta — TM, West</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-grp">
+    <div class="sidebar-grp-label">Main</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="nav('requests',this)"><span class="nav-icon">📋</span>All Requests<span class="nav-badge" id="pending-badge">5</span></div>
+    <div class="nav-item" onclick="nav('newreq',this)"><span class="nav-icon">➕</span>New Request</div>
+  </div>
+  <div class="sidebar-grp">
+    <div class="sidebar-grp-label">AI Tools</div>
+    <div class="nav-item" onclick="nav('ai',this)"><span class="nav-icon">🤖</span>AI Advisor</div>
+  </div>
+  <div class="sidebar-grp">
+    <div class="sidebar-grp-label">Reference</div>
+    <div class="nav-item" onclick="nav('hierarchy',this)"><span class="nav-icon">👥</span>Hierarchy</div>
+    <div class="nav-item" onclick="nav('pricelist',this)"><span class="nav-icon">📦</span>Price List</div>
+    <div class="nav-item" onclick="nav('tiers',this)"><span class="nav-icon">🎯</span>Approval Tiers</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Dashboard</div>
+      <div class="ph-sub">Special price approval overview — all stages</div>
+    </div>
+    <button class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi k-total"><div class="kpi-label">Total Requests</div><div class="kpi-val" id="k-total">0</div></div>
+    <div class="kpi k-green"><div class="kpi-label">Approved</div><div class="kpi-val" id="k-approved">0</div></div>
+    <div class="kpi k-amber"><div class="kpi-label">Pending</div><div class="kpi-val" id="k-pending">0</div></div>
+    <div class="kpi k-red"><div class="kpi-label">Rejected</div><div class="kpi-val" id="k-rejected">0</div></div>
+    <div class="kpi k-purple"><div class="kpi-label">Re-raised</div><div class="kpi-val" id="k-reraised">0</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="card-title">⏳ Pending Action</span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Date</th><th>TM</th><th>Customer</th><th>Product</th><th>Req ₹</th><th>Disc%</th><th>Approver</th><th>Deal Stage</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="dash-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════════ ALL REQUESTS ══════════ -->
+<div class="page" id="page-requests">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">All Requests</div><div class="ph-sub">Complete register with history chains</div></div>
+    <button class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
+  </div>
+  <div class="filters">
+    <input class="filter-inp" id="srch" placeholder="🔍  Customer / Product..." oninput="renderAll()">
+    <select class="filter-sel" id="fStatus" onchange="renderAll()">
+      <option value="">All Statuses</option>
+      <option>Approved</option><option>Rejected</option>
+      <option>Pending RSM</option><option>Pending ZSM</option>
+      <option>Pending NSM</option><option>Pending CM</option><option>Pending TM</option>
+    </select>
+    <select class="filter-sel" id="fStage" onchange="renderAll()">
+      <option value="">All Stages</option>
+      <option>Quotation Stage</option><option>Negotiation In Progress</option>
+      <option>Final / Closing</option><option>Revised Price Required</option>
+    </select>
+    <select class="filter-sel" id="fTier" onchange="renderAll()">
+      <option value="">All Tiers</option>
+      <option>RSM</option><option>ZSM</option><option>NSM</option><option>Country Manager</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Date</th><th>TM</th><th>Customer</th><th>Product</th><th>Std ₹</th><th>Req ₹</th><th>Disc%</th><th>Deal ₹</th><th>Tier</th><th>Deal Stage</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="all-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════════ NEW REQUEST ══════════ -->
+<div class="page" id="page-newreq">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title" id="form-page-title">New Price Approval Request</div><div class="ph-sub" id="form-page-sub">Submit for multi-level approval based on discount threshold</div></div>
+  </div>
+
+  <!-- re-raise notice -->
+  <div id="reraise-notice" style="display:none;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;">
+    <div style="font-size:11px;font-weight:800;color:var(--navy2);margin-bottom:6px;">🔗 Re-raise Linked to Previous Request</div>
+    <div id="reraise-notice-body" style="font-size:11px;color:var(--muted);line-height:1.7;"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd"><span class="card-title">Request Details</span></div>
+    <div style="padding:20px;">
+      <div class="form-grid">
+        <div class="fg">
+          <label class="lbl">Territory Manager</label>
+          <select class="sel" id="f-tm" onchange="onTMChange()">
+            <option>Arjun Mehta</option><option>Sunita Rao</option>
+            <option>Deepak Joshi</option><option>Meena Pillai</option><option>Rahul Desai</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Customer Name</label>
+          <input class="inp" id="f-customer" placeholder="e.g. Tata Motors Ltd" list="cust-list">
+          <datalist id="cust-list">
+            <option>Tata Motors Ltd</option><option>Mahindra & Mahindra</option>
+            <option>Bajaj Auto</option><option>TVS Motor Co</option><option>Hero MotoCorp</option>
+            <option>Ashok Leyland</option><option>Force Motors</option><option>Eicher Motors</option>
+            <option>Maruti Suzuki</option><option>Royal Enfield</option>
+          </datalist>
+        </div>
+        <div class="fg">
+          <label class="lbl">Product / SKU</label>
+          <select class="sel" id="f-product" onchange="onProductChange()">
+            <option value="">— Select —</option>
+            <option data-p="12500" data-fl="9500">HydraComp X200</option>
+            <option data-p="8800"  data-fl="7000">FlexSeal Pro 44</option>
+            <option data-p="15000" data-fl="11500">ThermoShield 120</option>
+            <option data-p="22000" data-fl="18000">VibraStop 88</option>
+            <option data-p="6500"  data-fl="5200">RotoClamp 500</option>
+            <option data-p="31000" data-fl="25000">PneumaMax 900</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Deal Stage</label>
+          <select class="sel" id="f-stage">
+            <option>Quotation Stage</option>
+            <option>Negotiation In Progress</option>
+            <option>Final / Closing</option>
+            <option>Revised Price Required</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Standard Price (₹)</label>
+          <input class="inp" id="f-std" readonly>
+        </div>
+        <div class="fg">
+          <label class="lbl">Floor Price (₹)</label>
+          <input class="inp" id="f-floor" readonly>
+        </div>
+        <div class="fg">
+          <label class="lbl">Requested Price (₹)</label>
+          <input class="inp" id="f-req" type="number" placeholder="Enter price" oninput="onPriceChange()">
+        </div>
+        <div class="fg">
+          <label class="lbl">Discount %</label>
+          <div class="disc-pill" id="f-disc">—</div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Deal Volume (Units)</label>
+          <input class="inp" id="f-vol" type="number" placeholder="e.g. 500">
+        </div>
+        <div class="fg">
+          <label class="lbl">Competitor Ref Price (₹)</label>
+          <input class="inp" id="f-comp" type="number" placeholder="Optional">
+        </div>
+        <div class="fg full">
+          <label class="lbl">Justification / Reason</label>
+          <textarea class="txa" id="f-just" placeholder="Describe the business case — competitive situation, customer value, volume commitment, strategic importance..."></textarea>
+        </div>
+      </div>
+
+      <!-- Tier indicator -->
+      <div style="margin-top:14px;">
+        <div class="sec-div">Approval Routing</div>
+        <div class="tier-indicator" id="tier-ind">
+          <div class="tier-indicator-icon">📋</div>
+          <div>
+            <div class="tier-indicator-text">Select product and enter requested price to see approval routing</div>
+            <div class="tier-indicator-name" id="tier-ind-name">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTRA INFO — shown only when >40% -->
+  <div id="extra-info-section" style="display:none;">
+    <div class="extra-info-box">
+      <div class="extra-info-title">⚠️ Additional Information Required — Country Manager Approval</div>
+      <div class="extra-info-sub">Discount exceeds 40%. Country Manager approval requires full account financial context and strategic justification.</div>
+      <div class="form-grid">
+        <div class="fg">
+          <label class="lbl">Account Revenue Last Year (₹ Lakhs)</label>
+          <input class="inp" id="f-rev-ly" type="number" placeholder="e.g. 45">
+        </div>
+        <div class="fg">
+          <label class="lbl">Expected Revenue This Year (₹ Lakhs)</label>
+          <input class="inp" id="f-rev-ty" type="number" placeholder="e.g. 65">
+        </div>
+        <div class="fg">
+          <label class="lbl">Relationship Since (Year)</label>
+          <input class="inp" id="f-rel-since" type="number" placeholder="e.g. 2019">
+        </div>
+        <div class="fg">
+          <label class="lbl">Account Classification</label>
+          <select class="sel" id="f-acct-class">
+            <option>Strategic / Key Account</option>
+            <option>New Customer Acquisition</option>
+            <option>Retention — At Risk</option>
+            <option>Tender / Bid</option>
+            <option>One-time Deal</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label class="lbl">Strategic Justification (Why Country Manager should approve)</label>
+          <textarea class="txa" id="f-strat-just" placeholder="Explain the long-term strategic value, competitive threat, or business impact that justifies this exceptional discount level..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approval timeline preview -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd"><span class="card-title">Approval Route Preview</span></div>
+    <div style="padding:16px 20px;">
+      <div class="tl" id="form-tl"></div>
+    </div>
+  </div>
+
+  <!-- AI pre-analysis -->
+  <div id="ai-pre-panel" style="display:none;">
+    <div class="ai-wrap">
+      <div class="ai-hd">
+        <span style="font-size:18px;">🤖</span>
+        <div><div class="ai-lbl">AI Agent</div><div class="ai-ttl">Pre-Submission Analysis</div></div>
+      </div>
+      <div class="ai-out" id="ai-pre-out"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn btn-ghost" onclick="runPreAnalysis()">🤖 AI Pre-Analysis</button>
+    <button class="btn btn-navy" onclick="submitRequest()">Submit Request →</button>
+    <button class="btn btn-ghost" onclick="nav('requests',null)">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════ AI ADVISOR ══════════ -->
+<div class="page" id="page-ai">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">AI Advisor</div><div class="ph-sub">Powered by Claude — pricing intelligence, risk assessment, draft justifications</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-hd"><span class="card-title">Quick Tasks</span></div>
+    <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="aiQ('Summarise the current approval pipeline. Highlight any high-risk or high-value requests needing urgent attention.')">📋 Pipeline Summary</button>
+      <button class="btn btn-ghost btn-sm" onclick="aiQ('Analyse all requests and identify which ones are likely to be rejected based on discount level vs floor price. Flag risk level for each.')">⚠️ Risk Flags</button>
+      <button class="btn btn-ghost btn-sm" onclick="aiQ('Which requests are at Country Manager tier (>40% discount) and what additional information should be prepared for CM review?')">🏢 CM Tier Review</button>
+      <button class="btn btn-ghost btn-sm" onclick="aiQ('Draft a strong strategic justification for a 35% discount on ThermoShield 120 for Bajaj Auto — 300 units, new customer acquisition, competitor offering ₹11,800.')">✍️ Draft Justification</button>
+      <button class="btn btn-ghost btn-sm" onclick="aiQ('Give me best practices for managing special price approvals in B2B manufacturing. How can this workflow be made more efficient?')">💡 Best Practices</button>
+    </div>
+  </div>
+  <div class="ai-wrap">
+    <div class="ai-hd">
+      <span style="font-size:18px;">🤖</span>
+      <div><div class="ai-lbl">Claude AI</div><div class="ai-ttl">Pricing Intelligence Assistant</div></div>
+    </div>
+    <div class="ai-out" id="ai-chat-out">Ask me anything — approval strategy, risk assessment, justification drafts, pipeline analysis...</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <input class="inp" id="ai-inp" placeholder="e.g. Should SPA-003 be approved? What's the risk?" style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn btn-accent" onclick="sendChat()">Ask →</button>
+  </div>
+  <div style="margin-top:14px;background:#fff;border:1px solid var(--border2);border-radius:var(--r);padding:14px 18px;">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Claude API Key</div>
+    <div style="display:flex;gap:8px;">
+      <input class="inp" id="api-key" type="password" placeholder="sk-ant-api03-..." style="flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;">
+      <button class="btn btn-ghost btn-sm" onclick="saveKey()">Save</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:5px;">Session only — not stored anywhere. Get at console.anthropic.com ($5 free credit)</div>
+  </div>
+</div>
+
+<!-- ══════════ HIERARCHY ══════════ -->
+<div class="page" id="page-hierarchy">
+  <div class="ph"><div class="ph-left"><div class="ph-title">Approval Hierarchy</div><div class="ph-sub">TM → RSM → ZSM → NSM → Country Manager</div></div></div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>TM Name</th><th>RSM</th><th>ZSM</th><th>Region Head / NSM</th><th>Region</th></tr></thead>
+      <tbody>
+        <tr><td>Arjun Mehta</td><td>Ravi Sharma</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
+        <tr><td>Sunita Rao</td><td>Vikram Patel</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
+        <tr><td>Deepak Joshi</td><td>Kavya Reddy</td><td>Suresh Iyer</td><td>Anand Kumar</td><td>South</td></tr>
+        <tr><td>Meena Pillai</td><td>Ravi Sharma</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
+        <tr><td>Rahul Desai</td><td>Vikram Patel</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════════ PRICE LIST ══════════ -->
+<div class="page" id="page-pricelist">
+  <div class="ph"><div class="ph-left"><div class="ph-title">Product Price List</div><div class="ph-sub">Standard and floor prices</div></div></div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Standard ₹</th><th>Floor ₹</th><th>Max Disc%</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>HC-X200</td><td>HydraComp X200</td><td>Hydraulic</td><td>₹12,500</td><td>₹9,500</td><td>24%</td><td>High runner — competitive market</td></tr>
+        <tr><td>FS-P44</td><td>FlexSeal Pro 44</td><td>Sealing</td><td>₹8,800</td><td>₹7,000</td><td>20%</td><td>Standard cap: 20%</td></tr>
+        <tr><td>TS-120</td><td>ThermoShield 120</td><td>Thermal</td><td>₹15,000</td><td>₹11,500</td><td>23%</td><td>Premium — protect margin</td></tr>
+        <tr><td>VS-88</td><td>VibraStop 88</td><td>Vibration</td><td>₹22,000</td><td>₹18,000</td><td>18%</td><td>Niche SKU</td></tr>
+        <tr><td>RC-500</td><td>RotoClamp 500</td><td>Clamping</td><td>₹6,500</td><td>₹5,200</td><td>20%</td><td>High vol, low margin</td></tr>
+        <tr><td>PM-900</td><td>PneumaMax 900</td><td>Pneumatic</td><td>₹31,000</td><td>₹25,000</td><td>19%</td><td>Enterprise only</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════════ APPROVAL TIERS ══════════ -->
+<div class="page" id="page-tiers">
+  <div class="ph"><div class="ph-left"><div class="ph-title">Approval Tiers by Discount</div><div class="ph-sub">Automatic routing based on discount percentage</div></div></div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Discount Range</th><th>Approver Level</th><th>Role</th><th>Additional Info Required</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--green-m);">&lt; 15%</strong></td><td><span class="tier-badge tier-rsm">RSM</span></td><td>Regional Sales Manager</td><td>Standard justification</td></tr>
+        <tr><td><strong style="color:var(--amber);">15% – 30%</strong></td><td><span class="tier-badge tier-zsm">ZSM</span></td><td>Zonal Sales Manager</td><td>Standard + competitor reference</td></tr>
+        <tr><td><strong style="color:var(--purple);">30% – 40%</strong></td><td><span class="tier-badge tier-nsm">NSM</span></td><td>National Sales Manager</td><td>Standard + volume commitment</td></tr>
+        <tr><td><strong style="color:var(--red);">&gt; 40%</strong></td><td><span class="tier-badge tier-cm">CM</span></td><td>Country Manager</td><td>Account revenue, expected revenue, strategic justification</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Supply Chain Note</span></div>
+    <div style="padding:16px 18px;font-size:12px;color:var(--text2);line-height:1.8;">
+      Supply chain approval remains a parallel track at all tiers. Special prices approved through this system are passed to Supply Chain for feasibility confirmation before final order confirmation. This process is unchanged from the existing workflow.
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="det-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="det-title">Request Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="det-body"></div>
+    <div class="modal-ft" id="det-ft"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const HIER = {
+  "Arjun Mehta":  {rsm:"Ravi Sharma",  zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
+  "Sunita Rao":   {rsm:"Vikram Patel", zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
+  "Deepak Joshi": {rsm:"Kavya Reddy",  zsm:"Suresh Iyer",  nsm:"Anand Kumar", cm:"Rajiv Mehrotra", region:"South"},
+  "Meena Pillai": {rsm:"Ravi Sharma",  zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
+  "Rahul Desai":  {rsm:"Vikram Patel", zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
+};
+const PRODUCTS = {
+  "HydraComp X200":  {std:12500,floor:9500},
+  "FlexSeal Pro 44": {std:8800, floor:7000},
+  "ThermoShield 120":{std:15000,floor:11500},
+  "VibraStop 88":    {std:22000,floor:18000},
+  "RotoClamp 500":   {std:6500, floor:5200},
+  "PneumaMax 900":   {std:31000,floor:25000},
+};
+
+function getTier(d){
+  if(d<15)  return {tier:"RSM",   label:"RSM",             cls:"tier-rsm",  status:"Pending RSM"};
+  if(d<30)  return {tier:"ZSM",   label:"ZSM",             cls:"tier-zsm",  status:"Pending ZSM"};
+  if(d<=40) return {tier:"NSM",   label:"NSM",             cls:"tier-nsm",  status:"Pending NSM"};
+  return           {tier:"CM",    label:"Country Manager", cls:"tier-cm",   status:"Pending CM"};
+}
+function getApproverName(tm,tier){
+  const h = HIER[tm]||{};
+  return {RSM:h.rsm,ZSM:h.zsm,NSM:h.nsm,CM:h.cm}[tier]||"—";
+}
+
+let requests = [
+  {id:"SPA-001",date:"2026-03-01",tm:"Arjun Mehta",customer:"Tata Motors Ltd",product:"HydraComp X200",stdPrice:12500,reqPrice:10800,volume:500,compPrice:10500,justification:"Competitor offering same spec at ₹10,500 for bulk order",dealStage:"Negotiation In Progress",status:"Pending RSM",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-002",date:"2026-03-02",tm:"Sunita Rao",customer:"Mahindra & Mahindra",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:7700,volume:1200,compPrice:7500,justification:"Long-term account, 3yr contract opportunity",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-003",date:"2026-03-03",tm:"Deepak Joshi",customer:"Bajaj Auto",product:"ThermoShield 120",stdPrice:15000,reqPrice:12000,volume:300,compPrice:11800,justification:"New customer acquisition — strategic account",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-004",date:"2026-03-04",tm:"Meena Pillai",customer:"TVS Motor Co",product:"HydraComp X200",stdPrice:12500,reqPrice:11500,volume:800,compPrice:null,justification:"Volume commitment of 800 units for Q1",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-005",date:"2026-03-05",tm:"Arjun Mehta",customer:"Hero MotoCorp",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:5000,volume:2000,compPrice:6200,justification:"Major tender win, 2000 units committed",dealStage:"Quotation Stage",status:"Rejected",tier:"CM",linkedTo:null,extraInfo:{revLY:120,revTY:180,relSince:2020,acctClass:"Tender / Bid",stratJust:"National tender — winning this sets precedent for 3 state tenders"}},
+  {id:"SPA-006",date:"2026-03-06",tm:"Rahul Desai",customer:"Ashok Leyland",product:"VibraStop 88",stdPrice:22000,reqPrice:19800,volume:150,compPrice:19500,justification:"RSM pre-approved similar deal last quarter",dealStage:"Negotiation In Progress",status:"Pending NSM",tier:"NSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-007",date:"2026-03-07",tm:"Sunita Rao",customer:"Force Motors",product:"ThermoShield 120",stdPrice:15000,reqPrice:13500,volume:400,compPrice:13000,justification:"Existing customer pushing for renewal discount",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-008",date:"2026-03-08",tm:"Deepak Joshi",customer:"Eicher Motors",product:"HydraComp X200",stdPrice:12500,reqPrice:10000,volume:600,compPrice:9800,justification:"Dealer under threat from local supplier",dealStage:"Revised Price Required",status:"Pending RSM",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-009",date:"2026-03-09",tm:"Meena Pillai",customer:"Maruti Suzuki",product:"VibraStop 88",stdPrice:22000,reqPrice:20500,volume:250,compPrice:null,justification:"Standard seasonal discount request",dealStage:"Quotation Stage",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
+  {id:"SPA-010",date:"2026-03-10",tm:"Rahul Desai",customer:"Royal Enfield",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:8000,volume:900,compPrice:7900,justification:"Pool dealer request for end-of-quarter push",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null},
+  // re-raised from SPA-005
+  {id:"SPA-011",date:"2026-03-11",tm:"Arjun Mehta",customer:"Hero MotoCorp",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:6200,volume:2000,compPrice:6200,justification:"Revised pricing based on CM feedback — aligned to competitor floor. Tender deadline March 25.",dealStage:"Negotiation In Progress",status:"Pending CM",tier:"CM",linkedTo:"SPA-005",extraInfo:{revLY:120,revTY:180,relSince:2020,acctClass:"Tender / Bid",stratJust:"Re-raised with revised price aligned to competitor. Tender deadline is March 25 — approval needed urgently."}},
+];
+
+let apiKey = "";
+let reraiseFrom = null;
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const INR = n => n ? '₹'+Number(n).toLocaleString('en-IN') : '—';
+const DISC = (s,r) => s&&r ? ((s-r)/s*100) : null;
+const DISC_FMT = (s,r) => { const d=DISC(s,r); return d!==null ? d.toFixed(1)+'%' : '—'; };
+
+function stageBadge(s){
+  const m={
+    "Quotation Stage":        "stage-quot",
+    "Negotiation In Progress":"stage-nego",
+    "Final / Closing":        "stage-final",
+    "Revised Price Required": "stage-revised",
+  };
+  return `<span class="stage-badge ${m[s]||''}">${s}</span>`;
+}
+function tierBadge(t){
+  const m={RSM:"tier-rsm",ZSM:"tier-zsm",NSM:"tier-nsm","CM":"tier-cm"};
+  const lbl={RSM:"RSM",ZSM:"ZSM",NSM:"NSM","CM":"CM"};
+  return `<span class="tier-badge ${m[t]||''}">${lbl[t]||t}</span>`;
+}
+function statusBadge(s){
+  if(s==="Approved") return `<span class="badge b-green">✓ Approved</span>`;
+  if(s==="Rejected") return `<span class="badge b-red">✕ Rejected</span>`;
+  return `<span class="badge b-amber">⏳ ${s}</span>`;
+}
+function discClass(d){
+  if(!d) return '';
+  if(d<15)  return 'disc-low';
+  if(d<30)  return 'disc-med';
+  if(d<=40) return 'disc-high';
+  return 'disc-critical';
+}
+
+function showToast(msg,type='i'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast show toast-${type}`;
+  setTimeout(()=>t.className='toast',3200);
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(id==='dashboard') renderDash();
+  if(id==='requests')  renderAll();
+  if(id==='newreq')    initForm();
+  updateBadge();
+}
+
+function updateBadge(){
+  const p = requests.filter(r=>r.status.startsWith('Pending')).length;
+  document.getElementById('pending-badge').textContent=p;
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function renderDash(){
+  const total=requests.length;
+  const approved=requests.filter(r=>r.status==='Approved').length;
+  const pending=requests.filter(r=>r.status.startsWith('Pending')).length;
+  const rejected=requests.filter(r=>r.status==='Rejected').length;
+  const reraised=requests.filter(r=>r.linkedTo).length;
+  document.getElementById('k-total').textContent=total;
+  document.getElementById('k-approved').textContent=approved;
+  document.getElementById('k-pending').textContent=pending;
+  document.getElementById('k-rejected').textContent=rejected;
+  document.getElementById('k-reraised').textContent=reraised;
+
+  const pending_list = requests.filter(r=>r.status.startsWith('Pending'));
+  document.getElementById('dash-tbody').innerHTML = pending_list.map(r=>{
+    const d=DISC(r.stdPrice,r.reqPrice);
+    return `<tr>
+      <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}${r.linkedTo?` <span class="badge b-teal" title="Re-raised from ${r.linkedTo}">↑</span>`:''}</strong></td>
+      <td>${r.date}</td><td>${r.tm}</td><td>${r.customer}</td><td>${r.product}</td>
+      <td>${INR(r.reqPrice)}</td>
+      <td><strong style="color:${d>40?'var(--red)':d>30?'var(--purple)':d>15?'var(--amber)':'var(--green-m)'}">${d?d.toFixed(1)+'%':'—'}</strong></td>
+      <td>${tierBadge(r.tier)}</td>
+      <td>${stageBadge(r.dealStage)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">View</button>
+        <button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
+        <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// ALL REQUESTS
+// ══════════════════════════════════════════
+function renderAll(){
+  const s=document.getElementById('srch').value.toLowerCase();
+  const fSt=document.getElementById('fStatus').value;
+  const fStg=document.getElementById('fStage').value;
+  const fT=document.getElementById('fTier').value;
+  const list=requests.filter(r=>
+    (!s||r.customer.toLowerCase().includes(s)||r.product.toLowerCase().includes(s)||r.id.toLowerCase().includes(s))&&
+    (!fSt||r.status===fSt)&&
+    (!fStg||r.dealStage===fStg)&&
+    (!fT||r.tier===fT||(fT==='Country Manager'&&r.tier==='CM'))
+  );
+  document.getElementById('all-tbody').innerHTML=list.map(r=>{
+    const d=DISC(r.stdPrice,r.reqPrice);
+    return `<tr>
+      <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}</strong>${r.linkedTo?`<br><span style="font-size:9px;color:var(--teal);">↑ ${r.linkedTo}</span>`:''}</td>
+      <td>${r.date}</td><td>${r.tm}</td>
+      <td>${r.customer}</td><td>${r.product}</td>
+      <td>${INR(r.stdPrice)}</td><td>${INR(r.reqPrice)}</td>
+      <td><strong>${d?d.toFixed(1)+'%':'—'}</strong></td>
+      <td>${INR(r.reqPrice*r.volume)}</td>
+      <td>${tierBadge(r.tier)}</td>
+      <td>${stageBadge(r.dealStage)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">Detail</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// FORM
+// ══════════════════════════════════════════
+function initForm(){
+  if(reraiseFrom){
+    const prev = requests.find(r=>r.id===reraiseFrom);
+    document.getElementById('form-page-title').textContent='Re-raise Price Request';
+    document.getElementById('form-page-sub').textContent=`Linked to rejected request ${reraiseFrom}`;
+    const notice = document.getElementById('reraise-notice');
+    notice.style.display='block';
+    document.getElementById('reraise-notice-body').innerHTML=
+      `<strong>Previous Request:</strong> ${reraiseFrom} | ${prev.customer} | ${prev.product}<br>
+       <strong>Previous Price:</strong> ${INR(prev.reqPrice)} (${DISC_FMT(prev.stdPrice,prev.reqPrice)} disc)<br>
+       <strong>Rejection reason carried forward — please revise pricing and justification.</strong>`;
+    // Pre-fill
+    setTimeout(()=>{
+      document.getElementById('f-tm').value=prev.tm;
+      document.getElementById('f-customer').value=prev.customer;
+      document.getElementById('f-product').value=prev.product;
+      document.getElementById('f-stage').value='Negotiation In Progress';
+      onTMChange(); onProductChange();
+    },50);
+  } else {
+    document.getElementById('form-page-title').textContent='New Price Approval Request';
+    document.getElementById('form-page-sub').textContent='Submit for multi-level approval based on discount threshold';
+    document.getElementById('reraise-notice').style.display='none';
+    // reset
+    ['f-customer','f-req','f-vol','f-comp','f-just'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('f-product').value='';
+    document.getElementById('f-std').value='';
+    document.getElementById('f-floor').value='';
+    document.getElementById('f-disc').textContent='—';
+    document.getElementById('f-disc').className='disc-pill';
+    document.getElementById('extra-info-section').style.display='none';
+    document.getElementById('ai-pre-panel').style.display='none';
+    renderFormTimeline(null,null);
+    updateTierIndicator(null);
+  }
+}
+
+function onTMChange(){ renderFormTimeline(null, null); }
+
+function onProductChange(){
+  const sel=document.getElementById('f-product');
+  const opt=sel.options[sel.selectedIndex];
+  const p=opt.dataset.p,fl=opt.dataset.fl;
+  document.getElementById('f-std').value=p?INR(parseInt(p)):'';
+  document.getElementById('f-floor').value=fl?INR(parseInt(fl)):'';
+  onPriceChange();
+}
+
+function onPriceChange(){
+  const stdRaw=document.getElementById('f-std').value.replace(/[₹,]/g,'');
+  const std=parseFloat(stdRaw),req=parseFloat(document.getElementById('f-req').value);
+  const el=document.getElementById('f-disc');
+  if(std&&req&&req<std){
+    const d=((std-req)/std*100);
+    el.textContent=d.toFixed(1)+'%';
+    el.className='disc-pill '+discClass(d);
+    const t=getTier(d);
+    updateTierIndicator(t);
+    renderFormTimeline(d,t);
+    document.getElementById('extra-info-section').style.display=d>40?'block':'none';
+  } else {
+    el.textContent='—'; el.className='disc-pill';
+    updateTierIndicator(null);
+    renderFormTimeline(null,null);
+    document.getElementById('extra-info-section').style.display='none';
+  }
+}
+
+function updateTierIndicator(t){
+  const ind=document.getElementById('tier-ind');
+  const nm=document.getElementById('tier-ind-name');
+  const tm=document.getElementById('f-tm').value;
+  if(!t){ nm.textContent='—'; ind.style.borderColor='var(--border)'; return; }
+  const approver=getApproverName(tm,t.tier);
+  const colors={RSM:'#1E40AF',ZSM:'#5B21B6',NSM:'#9D174D','CM':'#78350F'};
+  ind.style.borderColor=colors[t.tier]||'var(--border)';
+  document.querySelector('.tier-indicator-text').textContent=`This request requires ${t.label} approval`;
+  nm.textContent=approver+' ('+t.label+')';
+}
+
+function renderFormTimeline(disc,t){
+  const tm=document.getElementById('f-tm').value;
+  const h=HIER[tm]||{};
+  const stages=[
+    {role:"Territory Manager",name:tm,dot:"tl-done",stat:"Initiating"},
+  ];
+  if(!t){
+    stages.push({role:"Approver (TBD)",name:"Enter price to determine",dot:"tl-pending",stat:"Awaiting"});
+  } else if(t.tier==='RSM'){
+    stages.push({role:"RSM",name:h.rsm||'—',dot:"tl-active",stat:"Pending RSM Approval"});
+  } else if(t.tier==='ZSM'){
+    stages.push({role:"RSM (Info)",name:h.rsm||'—',dot:"tl-done",stat:"For information"});
+    stages.push({role:"ZSM",name:h.zsm||'—',dot:"tl-active",stat:"Pending ZSM Approval"});
+  } else if(t.tier==='NSM'){
+    stages.push({role:"RSM (Info)",name:h.rsm||'—',dot:"tl-done",stat:"For information"});
+    stages.push({role:"ZSM (Info)",name:h.zsm||'—',dot:"tl-done",stat:"For information"});
+    stages.push({role:"NSM",name:h.nsm||'—',dot:"tl-active",stat:"Pending NSM Approval"});
+  } else {
+    stages.push({role:"RSM → ZSM → NSM (Info)",name:"All for information",dot:"tl-done",stat:"For information"});
+    stages.push({role:"Country Manager",name:h.cm||'—',dot:"tl-active",stat:"Pending CM Approval — Additional info required"});
+  }
+  document.getElementById('form-tl').innerHTML=stages.map(s=>`
+    <div class="tl-step">
+      <div class="tl-dot ${s.dot}">${s.dot==='tl-done'?'✓':s.dot==='tl-active'?'→':'·'}</div>
+      <div class="tl-body">
+        <div class="tl-role">${s.role}</div>
+        <div class="tl-name">${s.name}</div>
+        <div class="tl-stat" style="color:${s.dot==='tl-done'?'var(--green-m)':s.dot==='tl-active'?'var(--amber)':'var(--muted)'}">${s.stat}</div>
+      </div>
+    </div>`).join('');
+}
+
+function submitRequest(){
+  const tm=document.getElementById('f-tm').value;
+  const cust=document.getElementById('f-customer').value.trim();
+  const prod=document.getElementById('f-product').value;
+  const req=parseFloat(document.getElementById('f-req').value);
+  const vol=parseInt(document.getElementById('f-vol').value);
+  const just=document.getElementById('f-just').value.trim();
+  const stage=document.getElementById('f-stage').value;
+
+  if(!cust||!prod||!req||!vol||!just){showToast('Please fill all required fields','e');return;}
+
+  const std=parseInt(document.getElementById('f-std').value.replace(/[₹,]/g,''));
+  const d=((std-req)/std*100);
+  const t=getTier(d);
+
+  // extra info for >40%
+  let extraInfo=null;
+  if(d>40){
+    const revLY=document.getElementById('f-rev-ly').value;
+    const revTY=document.getElementById('f-rev-ty').value;
+    const stratJ=document.getElementById('f-strat-just').value.trim();
+    if(!revLY||!revTY||!stratJ){showToast('Additional info required for CM approval (>40%)','e');return;}
+    extraInfo={revLY:parseFloat(revLY),revTY:parseFloat(revTY),
+      relSince:parseInt(document.getElementById('f-rel-since').value)||null,
+      acctClass:document.getElementById('f-acct-class').value,stratJust:stratJ};
+  }
+
+  const id='SPA-'+String(requests.length+1).padStart(3,'0');
+  const h=HIER[tm]||{};
+
+  requests.unshift({
+    id, date:new Date().toISOString().split('T')[0],
+    tm, customer:cust, product:prod, stdPrice:std, reqPrice:req,
+    volume:vol, compPrice:parseFloat(document.getElementById('f-comp').value)||null,
+    justification:just, dealStage:stage,
+    status:t.status, tier:t.tier,
+    linkedTo:reraiseFrom||null, extraInfo,
+  });
+
+  reraiseFrom=null;
+  showToast(`${id} submitted — routed to ${t.label}`,'s');
+  nav('requests',null);
+}
+
+// ══════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════
+const STATUS_CHAIN={
+  "Pending RSM":"Pending ZSM","Pending ZSM":"Pending NSM",
+  "Pending NSM":"Pending CM","Pending CM":"Approved","Pending TM":"Pending RSM"
+};
+
+function advanceStatus(id){
+  const r=requests.find(x=>x.id===id);
+  if(!r)return;
+  r.status=STATUS_CHAIN[r.status]||'Approved';
+  showToast(`${id} → ${r.status}`,'s');
+  renderDash();
+}
+
+function rejectRequest(id){
+  const r=requests.find(x=>x.id===id);
+  if(!r)return;
+  r.status='Rejected';
+  showToast(`${id} rejected`,'e');
+  renderDash(); renderAll();
+}
+
+function raiseAgain(id){
+  reraiseFrom=id;
+  closeModal();
+  nav('newreq',null);
+}
+
+// ══════════════════════════════════════════
+// DETAIL MODAL
+// ══════════════════════════════════════════
+function openDetail(id){
+  const r=requests.find(x=>x.id===id);
+  if(!r)return;
+  const d=DISC(r.stdPrice,r.reqPrice);
+  const h=HIER[r.tm]||{};
+
+  // History chain
+  const chain=[];
+  let cur=r;
+  while(cur){
+    chain.unshift(cur);
+    cur=cur.linkedTo?requests.find(x=>x.id===cur.linkedTo):null;
+  }
+  // find if this was re-raised
+  const reraised=requests.find(x=>x.linkedTo===r.id);
+
+  // Approval timeline
+  const tlSteps=buildTimeline(r,h);
+
+  let extraHTML='';
+  if(r.extraInfo){
+    extraHTML=`
+      <div class="sec-div">Country Manager — Account Info</div>
+      <div class="detail-grid">
+        <div class="dg-item"><div class="dg-label">Revenue Last Year</div><div class="dg-val">₹${r.extraInfo.revLY} Lakhs</div></div>
+        <div class="dg-item"><div class="dg-label">Expected This Year</div><div class="dg-val">₹${r.extraInfo.revTY} Lakhs</div></div>
+        <div class="dg-item"><div class="dg-label">Relationship Since</div><div class="dg-val">${r.extraInfo.relSince||'—'}</div></div>
+        <div class="dg-item"><div class="dg-label">Account Classification</div><div class="dg-val">${r.extraInfo.acctClass}</div></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="dg-label" style="margin-bottom:4px;">Strategic Justification</div>
+        <div style="background:var(--bg);padding:10px 12px;border-radius:5px;font-size:11px;line-height:1.7;color:var(--text2);">${r.extraInfo.stratJust}</div>
+      </div>`;
+  }
+
+  let histHTML='';
+  if(chain.length>1||reraised){
+    histHTML=`<div class="sec-div">Request History Chain</div><div class="hist-chain">`;
+    chain.forEach((c,i)=>{
+      const isCur=c.id===r.id;
+      histHTML+=`<div class="hist-item ${isCur?'current':''}">
+        <div class="hist-id">${c.id}</div>
+        <div class="hist-detail">${c.date} · ${INR(c.reqPrice)} · ${DISC_FMT(c.stdPrice,c.reqPrice)} disc · ${c.dealStage}</div>
+        ${statusBadge(c.status)}
+        ${isCur?'<span style="font-size:10px;color:var(--navy2);font-weight:700;">← Current</span>':''}
+      </div>`;
+      if(i<chain.length-1) histHTML+='<div style="padding-left:14px;color:var(--muted);font-size:11px;">↓ re-raised as</div>';
+    });
+    if(reraised) histHTML+=`
+      <div style="padding-left:14px;color:var(--muted);font-size:11px;">↓ re-raised as</div>
+      <div class="hist-item">
+        <div class="hist-id">${reraised.id}</div>
+        <div class="hist-detail">${reraised.date} · ${INR(reraised.reqPrice)} · ${DISC_FMT(reraised.stdPrice,reraised.reqPrice)} disc</div>
+        ${statusBadge(reraised.status)}
+      </div>`;
+    histHTML+='</div>';
+  }
+
+  document.getElementById('det-title').innerHTML=
+    `${r.id} — ${r.customer} ${r.linkedTo?`<span class="badge b-teal">Re-raised</span>`:''}`;
+
+  document.getElementById('det-body').innerHTML=`
+    <div class="detail-grid">
+      <div class="dg-item"><div class="dg-label">Customer</div><div class="dg-val">${r.customer}</div></div>
+      <div class="dg-item"><div class="dg-label">Product</div><div class="dg-val">${r.product}</div></div>
+      <div class="dg-item"><div class="dg-label">Territory Manager</div><div class="dg-val">${r.tm}</div></div>
+      <div class="dg-item"><div class="dg-label">Deal Stage</div><div class="dg-val">${stageBadge(r.dealStage)}</div></div>
+      <div class="dg-item"><div class="dg-label">Standard Price</div><div class="dg-val">${INR(r.stdPrice)}</div></div>
+      <div class="dg-item"><div class="dg-label">Requested Price</div><div class="dg-val"><strong>${INR(r.reqPrice)}</strong></div></div>
+      <div class="dg-item"><div class="dg-label">Discount</div><div class="dg-val"><strong style="color:${d>40?'var(--red)':d>30?'var(--purple)':d>15?'var(--amber)':'var(--green-m)'}">${d?d.toFixed(1)+'%':'—'}</strong></div></div>
+      <div class="dg-item"><div class="dg-label">Approval Tier</div><div class="dg-val">${tierBadge(r.tier)}</div></div>
+      <div class="dg-item"><div class="dg-label">Volume</div><div class="dg-val">${r.volume} units</div></div>
+      <div class="dg-item"><div class="dg-label">Deal Value</div><div class="dg-val">${INR(r.reqPrice*r.volume)}</div></div>
+      <div class="dg-item"><div class="dg-label">Competitor Price</div><div class="dg-val">${INR(r.compPrice)}</div></div>
+      <div class="dg-item"><div class="dg-label">Status</div><div class="dg-val">${statusBadge(r.status)}</div></div>
+    </div>
+    <div class="sec-div">Justification</div>
+    <div style="background:var(--bg);padding:10px 12px;border-radius:5px;font-size:12px;line-height:1.7;margin-bottom:16px;">${r.justification}</div>
+    ${extraHTML}
+    <div class="sec-div">Approval Timeline</div>
+    <div class="tl">${tlSteps}</div>
+    ${histHTML}
+  `;
+
+  const ft=document.getElementById('det-ft');
+  if(r.status.startsWith('Pending')){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-red btn-sm" onclick="rejectRequest('${r.id}');closeModal();renderDash();">Reject</button>
+      <button class="btn btn-green btn-sm" onclick="advanceStatus('${r.id}');closeModal();renderDash();">Approve / Advance →</button>`;
+  } else if(r.status==='Rejected'&&!reraised){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-accent btn-sm" onclick="raiseAgain('${r.id}')">↑ Re-raise with Revised Price</button>`;
+  } else {
+    ft.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`;
+  }
+
+  document.getElementById('det-overlay').classList.add('open');
+}
+
+function buildTimeline(r,h){
+  const allStages=[
+    {role:"Territory Manager",name:r.tm,tier:null},
+    {role:"RSM",name:h.rsm||'—',tier:"RSM"},
+    {role:"ZSM",name:h.zsm||'—',tier:"ZSM"},
+    {role:"NSM",name:h.nsm||'—',tier:"NSM"},
+    {role:"Country Manager",name:h.cm||'—',tier:"CM"},
+  ];
+  // Which stages are relevant based on tier
+  const tierOrder=["RSM","ZSM","NSM","CM"];
+  const tierIdx=tierOrder.indexOf(r.tier);
+  const relevant=[allStages[0],...allStages.slice(1).filter((_,i)=>i<=tierIdx)];
+
+  return relevant.map((s,i)=>{
+    let dot,stat;
+    if(i===0){dot="tl-done";stat="Submitted";}
+    else if(r.status==="Approved"){dot="tl-done";stat="Approved";}
+    else if(r.status==="Rejected"){dot=i===relevant.length-1?"tl-rejected":"tl-done";stat=i===relevant.length-1?"Rejected":"Reviewed";}
+    else {
+      const pendingTier=r.status.replace("Pending ","");
+      const thisTier=s.tier;
+      if(!thisTier){dot="tl-done";stat="Submitted";}
+      else if(tierOrder.indexOf(thisTier)<tierOrder.indexOf(pendingTier)){dot="tl-done";stat="Approved → escalated";}
+      else if(thisTier===pendingTier){dot="tl-active";stat=`Awaiting ${thisTier} decision`;}
+      else{dot="tl-pending";stat="Pending";}
+    }
+    return `<div class="tl-step">
+      <div class="tl-dot ${dot}">${dot==='tl-done'?'✓':dot==='tl-active'?'→':dot==='tl-rejected'?'✕':'·'}</div>
+      <div class="tl-body">
+        <div class="tl-role">${s.role}</div>
+        <div class="tl-name">${s.name}</div>
+        <div class="tl-stat" style="color:${dot==='tl-done'?'var(--green-m)':dot==='tl-active'?'var(--amber)':dot==='tl-rejected'?'var(--red)':'var(--muted)'}">${stat}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function closeModal(){
+  document.getElementById('det-overlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+// AI
+// ══════════════════════════════════════════
+async function callClaude(prompt,outId){
+  const key=apiKey||document.getElementById('api-key').value;
+  const out=document.getElementById(outId);
+  if(!key){out.innerHTML='<span style="color:rgba(255,255,255,.5);">⚠ Add Claude API key in the AI Advisor tab first.</span>';return;}
+  out.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Thinking...';
+  try{
+    const context=`You are a Special Price Approval advisor for a B2B manufacturing components company in India.\n\nCurrent requests:\n${requests.map(r=>{const d=DISC(r.stdPrice,r.reqPrice);return `${r.id}: ${r.customer} | ${r.product} | Std:₹${r.stdPrice} Req:₹${r.reqPrice} | Disc:${d?d.toFixed(1)+'%':'?'} | Tier:${r.tier} | Stage:${r.dealStage} | Status:${r.status}${r.linkedTo?' | Re-raised from:'+r.linkedTo:''}`}).join('\n')}\n\nApproval tiers: <15% RSM, 15-30% ZSM, 30-40% NSM, >40% Country Manager (with account revenue data required).\nUse ₹ for currency. Be concise and direct.`;
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,system:context,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await resp.json();
+    if(data.error){out.textContent="Error: "+data.error.message;return;}
+    out.textContent=data.content[0].text;
+  }catch(e){out.textContent="Error: "+e.message;}
+}
+
+async function runPreAnalysis(){
+  const prod=document.getElementById('f-product').value;
+  const req=document.getElementById('f-req').value;
+  const std=document.getElementById('f-std').value.replace(/[₹,]/g,'');
+  const just=document.getElementById('f-just').value;
+  const cust=document.getElementById('f-customer').value;
+  const vol=document.getElementById('f-vol').value;
+  const comp=document.getElementById('f-comp').value;
+  if(!prod||!req){showToast('Fill product and price first','e');return;}
+  const d=std&&req?((std-req)/std*100).toFixed(1):null;
+  const panel=document.getElementById('ai-pre-panel');
+  panel.style.display='block';
+  const prompt=`Pre-submission analysis for:\nCustomer: ${cust||'TBD'}\nProduct: ${prod}\nStd Price: ₹${std}\nRequested: ₹${req}\nDiscount: ${d}%\nVolume: ${vol||'?'} units\nCompetitor: ${comp?'₹'+comp:'not provided'}\nJustification: ${just||'not filled'}\n\n1. RECOMMENDATION: Approve/Conditional/Reject\n2. RISK: Low/Medium/High\n3. APPROVER: Who will need to approve based on ${d}% discount?\n4. Key points for approver (2-3 bullets)\n5. Suggested improvement to justification if any`;
+  await callClaude(prompt,'ai-pre-out');
+}
+
+function aiQ(q){document.getElementById('ai-inp').value=q;sendChat();}
+
+async function sendChat(){
+  const q=document.getElementById('ai-inp').value.trim();
+  if(!q)return;
+  document.getElementById('ai-inp').value='';
+  await callClaude(q,'ai-chat-out');
+}
+
+function saveKey(){
+  apiKey=document.getElementById('api-key').value;
+  if(apiKey)showToast('API key saved for this session ✓','s');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.getElementById('det-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+renderDash();
+updateBadge();
+renderFormTimeline(null,null);
+</script>
+</body>
+</html>
