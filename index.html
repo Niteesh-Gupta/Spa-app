@@ -787,27 +787,59 @@ function nav(id,el){
 }
 
 function updateBadge(){
-  const p = requests.filter(r=>r.status.startsWith('Pending')).length;
+  const p = getRoleQueueCount();
   document.getElementById('pending-badge').textContent=p;
+}
+
+// ── ROLE-FILTERED DATASET ──
+// Returns the subset of requests each role is allowed to see
+function getRoleVisibleRequests() {
+  if(!_role) return requests; // pre-login: show all (shouldn't happen)
+  if(_role==='TM')  return requests.filter(r=>r.tm===_name);
+  if(_role==='RSM') return requests.filter(r=>r.status==='Pending RSM'||r.tier==='RSM');
+  if(_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM'||r.tier==='ZSM');
+  if(_role==='NSM') return requests.filter(r=>r.status==='Pending NSM'||r.tier==='NSM');
+  if(_role==='CM')  return requests.filter(r=>r.status==='Pending CM' ||r.tier==='CM');
+  if(_role==='SC')  return requests.filter(r=>r.status==='Approved');
+  return requests;
 }
 
 // ══════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════
 function renderDash(){
-  const total=requests.length;
-  const approved=requests.filter(r=>r.status==='Approved').length;
-  const pending=requests.filter(r=>r.status.startsWith('Pending')).length;
-  const rejected=requests.filter(r=>r.status==='Rejected').length;
-  const reraised=requests.filter(r=>r.linkedTo).length;
+  // ── Role-filtered dataset ──
+  var visible = getRoleVisibleRequests();
+  var myPending = visible.filter(r=>r.status.startsWith('Pending'));
+
+  // KPIs — scoped to what this role can see
+  var total    = visible.length;
+  var approved = visible.filter(r=>r.status==='Approved').length;
+  var pending  = myPending.length;
+  var rejected = visible.filter(r=>r.status==='Rejected').length;
+  var reraised = visible.filter(r=>r.linkedTo).length;
   document.getElementById('k-total').textContent=total;
   document.getElementById('k-approved').textContent=approved;
   document.getElementById('k-pending').textContent=pending;
   document.getElementById('k-rejected').textContent=rejected;
   document.getElementById('k-reraised').textContent=reraised;
 
-  const pending_list = requests.filter(r=>r.status.startsWith('Pending'));
-  document.getElementById('dash-tbody').innerHTML = pending_list.map(r=>{
+  // Dashboard table — pending items relevant to this role
+  var dashList = myPending;
+
+  // TM: show all their own pending; Approvers: show only their tier
+  if(_role==='RSM') dashList=requests.filter(r=>r.status==='Pending RSM');
+  else if(_role==='ZSM') dashList=requests.filter(r=>r.status==='Pending ZSM');
+  else if(_role==='NSM') dashList=requests.filter(r=>r.status==='Pending NSM');
+  else if(_role==='CM')  dashList=requests.filter(r=>r.status==='Pending CM');
+  else if(_role==='SC')  dashList=requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed');
+
+  // Show/hide Approve+Reject buttons based on role
+  var canAct = _role && _role!=='TM' && _role!=='SC';
+
+  document.getElementById('dash-tbody').innerHTML = dashList.length===0
+    ? `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">✅ No pending items for your role right now.</td></tr>`
+    : dashList.map(r=>{
     const d=DISC(r.stdPrice,r.reqPrice);
     return `<tr>
       <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}${r.linkedTo?` <span class="badge b-teal" title="Re-raised from ${r.linkedTo}">↑</span>`:''}</strong></td>
@@ -819,8 +851,9 @@ function renderDash(){
       <td>${statusBadge(r.status)}</td>
       <td style="white-space:nowrap;">
         <button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">View</button>
-        <button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
-        <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>
+        ${canAct?`<button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
+        <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>`:''}
+        ${_role==='TM'&&r.status==='Rejected'&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -834,13 +867,22 @@ function renderAll(){
   const fSt=document.getElementById('fStatus').value;
   const fStg=document.getElementById('fStage').value;
   const fT=document.getElementById('fTier').value;
-  const list=requests.filter(r=>
+
+  // Start with role-filtered base, then apply search/filter on top
+  var base = getRoleVisibleRequests();
+
+  const list=base.filter(r=>
     (!s||r.customer.toLowerCase().includes(s)||r.product.toLowerCase().includes(s)||r.id.toLowerCase().includes(s))&&
     (!fSt||r.status===fSt)&&
     (!fStg||r.dealStage===fStg)&&
     (!fT||r.tier===fT||(fT==='Country Manager'&&r.tier==='CM'))
   );
-  document.getElementById('all-tbody').innerHTML=list.map(r=>{
+
+  var canAct = _role && _role!=='TM' && _role!=='SC';
+
+  document.getElementById('all-tbody').innerHTML=list.length===0
+    ? `<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">No requests found for your current filters.</td></tr>`
+    : list.map(r=>{
     const d=DISC(r.stdPrice,r.reqPrice);
     return `<tr>
       <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}</strong>${r.linkedTo?`<br><span style="font-size:9px;color:var(--teal);">↑ ${r.linkedTo}</span>`:''}</td>
@@ -852,7 +894,10 @@ function renderAll(){
       <td>${tierBadge(r.tier)}</td>
       <td>${stageBadge(r.dealStage)}</td>
       <td>${statusBadge(r.status)}</td>
-      <td><button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">Detail</button></td>
+      <td>
+        <button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">Detail</button>
+        ${canAct&&r.status===`Pending ${_role}`?`<button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">✓</button><button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">✕</button>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1134,15 +1179,24 @@ function openDetail(id){
   `;
 
   const ft=document.getElementById('det-ft');
-  if(r.status.startsWith('Pending')){
+  const myTier    = _role && _role!=='TM' && _role!=='SC';
+  const canAct    = myTier && r.status===`Pending ${_role}`;
+  const canReraise= _role==='TM' && r.status==='Rejected' && r.tm===_name && !reraised;
+
+  if(canAct){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
-      <button class="btn btn-red btn-sm" onclick="rejectRequest('${r.id}');closeModal();renderDash();">Reject</button>
-      <button class="btn btn-green btn-sm" onclick="advanceStatus('${r.id}');closeModal();renderDash();">Approve / Advance →</button>`;
-  } else if(r.status==='Rejected'&&!reraised){
+      <button class="btn btn-red btn-sm" onclick="rejectRequest('${r.id}');closeModal();renderDash();">✕ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="advanceStatus('${r.id}');closeModal();renderDash();">✓ Approve</button>`;
+  } else if(canReraise){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <button class="btn btn-accent btn-sm" onclick="raiseAgain('${r.id}')">↑ Re-raise with Revised Price</button>`;
+  } else if(r.status.startsWith('Pending')&&myTier&&!canAct){
+    // Approver viewing a request that isn't at their tier — read only
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <span style="font-size:11px;color:var(--muted);padding:6px 12px;">This request is at a different approval tier — view only.</span>`;
   } else {
     ft.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`;
   }
@@ -1252,7 +1306,10 @@ renderFormTimeline(null,null);
 </script>
 
 <script>
+// ── ROLE STATE ──
 var _role = null, _name = null;
+
+// ── LOGIN SELECTION ──
 function loginAs(el, role, name, label) {
   _role = role; _name = name;
   document.querySelectorAll('[data-sel]').forEach(function(b){
@@ -1264,54 +1321,83 @@ function loginAs(el, role, name, label) {
   el.style.background='rgba(232,160,32,.15)';
   el.style.borderColor='#E07B1F';
   var btn=document.getElementById('enter-btn');
-  btn.disabled=false;btn.style.opacity='1';
+  btn.disabled=false; btn.style.opacity='1';
   btn.textContent='Enter as '+label+' →';
 }
+
+// ── ENTER APP ──
 function enterApp() {
   if(!_role) return;
   document.getElementById('login-screen').style.display='none';
-  // Update topbar
+
+  // topbar avatar + name
   var av=document.getElementById('topbar-avatar');
-  if(av){av.textContent=_role.substring(0,2);}
+  var avColors={TM:'#2563EB',RSM:'#7C3AED',ZSM:'#DB2777',NSM:'#059669',CM:'#D97706',SC:'#0891B2'};
+  if(av){ av.textContent=_role==='CM'?'CM':_role.substring(0,2); av.style.background=avColors[_role]||'#64748B'; }
   var un=document.getElementById('topbar-user');
-  if(un){un.textContent=_name+' — '+_role;}
-  // Show role banner
+  if(un) un.textContent=_name+' — '+_role;
+
+  // role banner
   var bannerColors={TM:'#EFF6FF',RSM:'#F5F3FF',ZSM:'#FDF2F8',NSM:'#F0FDF4',CM:'#FFFBEB',SC:'#ECFEFF'};
-  var textColors={TM:'#1E40AF',RSM:'#5B21B6',ZSM:'#9D174D',NSM:'#14532D',CM:'#78350F',SC:'#164E63'};
+  var textColors  ={TM:'#1E40AF',RSM:'#5B21B6',ZSM:'#9D174D',NSM:'#14532D',CM:'#78350F',SC:'#164E63'};
   var existing=document.getElementById('role-banner-bar');
   if(!existing){
     var bar=document.createElement('div');
     bar.id='role-banner-bar';
-    bar.style.cssText='padding:8px 28px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;border-bottom:1px solid #E2E8F0;';
+    bar.style.cssText='padding:8px 28px;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E2E8F0;';
     document.querySelector('.topbar').insertAdjacentElement('afterend',bar);
     existing=bar;
   }
   existing.style.background=bannerColors[_role]||'#EFF6FF';
   existing.style.color=textColors[_role]||'#1E40AF';
-  var queueSizes={TM:2,RSM:2,ZSM:2,NSM:1,CM:1,SC:2};
-  existing.innerHTML='<strong>'+_role+' View</strong> — Logged in as '+_name+' &nbsp;·&nbsp; '+(queueSizes[_role]||0)+' item(s) pending your action &nbsp;&nbsp;<button onclick="document.getElementById("login-screen").style.display="flex";" style="background:rgba(0,0,0,.08);border:none;border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;">← Switch Role</button>';
-  // Filter dashboard table based on role
-  filterForRole();
+
+  // re-render with role filter applied FIRST, then update banner count
+  renderDash();
+  renderAll();
+  updateBadge();
+
+  var q=getRoleQueueCount();
+  existing.innerHTML=
+    '<span><strong>'+_role+' View</strong> &nbsp;·&nbsp; Logged in as '+_name+'</span>'+
+    '<span style="display:flex;align-items:center;gap:12px;">'+
+      '<span style="background:rgba(0,0,0,.1);padding:2px 10px;border-radius:10px;font-size:10px;">'+
+        q+' item'+(q!==1?'s':'')+' pending your action'+
+      '</span>'+
+      '<button onclick="switchRole()" style="background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.15);border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;color:inherit;">← Switch Role</button>'+
+    '</span>';
 }
-function filterForRole() {
-  // Role-specific messaging in the topbar area
-  var roleNotes = {
-    RSM: 'Showing requests Pending RSM approval',
-    ZSM: 'Showing requests Pending ZSM approval', 
-    NSM: 'Showing requests Pending NSM approval',
-    CM:  'Showing requests Pending Country Manager approval',
-    SC:  'Showing Approved requests awaiting Supply Chain confirmation',
-    TM:  'Showing your submitted requests'
-  };
-  // Visual indicator
-  var note = document.createElement('div');
-  note.style.cssText = 'background:#FEF9C3;border:1px solid #FDE68A;border-radius:6px;padding:8px 14px;font-size:11px;color:#92400E;font-weight:600;margin-bottom:16px;';
-  note.innerHTML = '🎯 Role Filter Active: ' + (roleNotes[_role]||'') + ' — In full version, only your queue items appear here.';
-  var main = document.querySelector('.main');
-  if(main && !document.getElementById('role-note')) {
-    note.id = 'role-note';
-    main.insertBefore(note, main.firstChild);
-  }
+
+// ── SWITCH ROLE ──
+function switchRole() {
+  _role=null; _name=null;
+  document.getElementById('login-screen').style.display='flex';
+  document.querySelectorAll('[data-sel]').forEach(function(b){
+    b.dataset.sel='0';
+    b.style.background='rgba(255,255,255,.06)';
+    b.style.borderColor='rgba(255,255,255,.1)';
+  });
+  var btn=document.getElementById('enter-btn');
+  btn.disabled=true; btn.style.opacity='0.4';
+  btn.textContent='Select a role to continue →';
+}
+
+// ── ROLE QUEUE COUNT (live) ──
+function getRoleQueueCount() {
+  if(!_role) return 0;
+  if(_role==='TM')  return requests.filter(r=>r.status.startsWith('Pending')&&r.tm===_name).length;
+  if(_role==='RSM') return requests.filter(r=>r.status==='Pending RSM').length;
+  if(_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM').length;
+  if(_role==='NSM') return requests.filter(r=>r.status==='Pending NSM').length;
+  if(_role==='CM')  return requests.filter(r=>r.status==='Pending CM').length;
+  if(_role==='SC')  return requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed').length;
+  return 0;
+}
+
+// ── ROLE-AWARE SIDEBAR NAV ──
+// Hide New Request for non-TM roles
+function applyRoleSidebar() {
+  var newReqNav = document.querySelector('.nav-item[onclick*="newreq"]');
+  if(newReqNav) newReqNav.style.display = (_role==='TM'||!_role) ? 'flex' : 'none';
 }
 </script>
 
