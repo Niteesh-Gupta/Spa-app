@@ -684,6 +684,9 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 <div class="toast" id="toast"></div>
 
 <script>
+// ── GLOBAL ROLE STATE — declared here so both script blocks can access ──
+var _role = null, _name = null;
+
 // ══════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════
@@ -1306,9 +1309,6 @@ renderFormTimeline(null,null);
 </script>
 
 <script>
-// ── ROLE STATE ──
-var _role = null, _name = null;
-
 // ── LOGIN SELECTION ──
 function loginAs(el, role, name, label) {
   _role = role; _name = name;
