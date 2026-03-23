@@ -1,42 +1,49 @@
-# 🏷 Special Price Approval System
-**Enterprise Edition · v3.0**
+🏷 Special Price Approval System
 
-A multi-role web application for managing special price approvals 
-in B2B manufacturing sales — built with AI agents (Anthropic Claude).
+Prototype · v3.0
 
-## 🔗 Live Application
-**[spa-app-orpin.vercel.app](https://spa-app-orpin.vercel.app)**
+A multi-role web application designed to streamline special price approval workflows in B2B manufacturing environments, replacing fragmented Excel/email-based processes with a structured, role-driven system.
 
-## 👥 Roles Supported
-| Role | Approval Authority |
-|------|--------------------|
-| Territory Manager | Submit requests |
-| RSM | Discount < 15% |
-| ZSM | Discount 15–30% |
-| NSM | Discount 30–40% |
-| Country Manager | Discount > 40% |
-| Supply Chain | Feasibility confirmation |
+🔗 Live Application
 
-## ⚙️ Tech Stack
-- **Frontend:** HTML / CSS / Vanilla JS (single file)
-- **AI:** Anthropic Claude API
-- **Hosting:** Vercel
-- **CI/CD:** GitHub → Vercel auto-deploy
+https://spa-app-orpin.vercel.app
 
-## 📁 Repository Structure
-```
-index.html                    ← Application
-docs/
-  SPA_Project_Documentation.docx
-```
+🎯 Problem Statement
 
-## 🗺 Roadmap
-- [x] v1 — Core approval workflow
-- [x] v2 — Discount tiers, deal stages, re-raise
-- [x] v3 — Role-based login
-- [ ] v4 — Supabase database
-- [ ] v5 — Email notifications (n8n)
-- [ ] v6 — Salesforce integration
+In many sales organizations, special pricing approvals are handled through disconnected channels (Excel, email, WhatsApp), leading to:
+
+Lack of visibility across approval stages
+Delays in decision-making
+No centralized audit trail
+Inconsistent discount governance
+
+This system provides a structured approval workflow aligned with organizational hierarchy.
+
+👥 Roles & Approval Logic
+Role	Responsibility
+Territory Manager	Create and submit requests
+RSM	Approve < 15% discount
+ZSM	Approve 15–30% discount
+NSM	Approve 30–40% discount
+Country Manager	Approve > 40% discount
+Supply Chain	Feasibility validation
+⚙️ Tech Stack
+Frontend: HTML / CSS / Vanilla JS (single-file architecture)
+AI Integration: Anthropic Claude API (insight generation)
+Hosting: Vercel
+Deployment: GitHub → Vercel CI/CD
+🏗 Architecture (Current Version)
+Fully frontend-based prototype
+In-memory request handling (no database yet)
+Role-based access simulated via login selection
+AI module integrated for contextual insights
+🗺 Roadmap
+ v1 — Core approval workflow
+ v2 — Discount tiers, deal stages, re-raise logic
+ v3 — Role-based login & UI control
+ v4 — Backend integration (Supabase)
+ v5 — Email automation (n8n)
+ v6 — CRM integration (Salesforce)
 
 ## 📄 Documentation
 See `docs/SPA_Project_Documentation.docx`
