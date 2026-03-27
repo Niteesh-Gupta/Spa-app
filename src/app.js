@@ -5,6 +5,7 @@ const helmet  = require('helmet');
 const cors    = require('cors');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
+const { Client: PgClient } = require('pg');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -164,6 +165,42 @@ app.patch('/api/requests/:id', verifyToken, async (req, res) => {
     .single();
   if (error) return res.status(500).json({ error: error.message });
   res.json(dbToJs(data));
+});
+
+// ── One-time migration endpoint ───────────────────────────────────────────────
+// Call once to add multi-SKU columns to price_requests, then it's a no-op.
+// Protected by MIGRATION_SECRET env var.
+app.post('/api/admin/migrate', async (req, res) => {
+  const secret = process.env.MIGRATION_SECRET;
+  if (!secret || req.headers['x-migration-secret'] !== secret) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) return res.status(500).json({ error: 'DATABASE_URL not configured' });
+
+  const client = new PgClient({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+  try {
+    await client.connect();
+    await client.query(`
+      ALTER TABLE price_requests
+        ADD COLUMN IF NOT EXISTS date              TEXT,
+        ADD COLUMN IF NOT EXISTS tm_name           TEXT,
+        ADD COLUMN IF NOT EXISTS dealer_name       TEXT,
+        ADD COLUMN IF NOT EXISTS skus              JSONB,
+        ADD COLUMN IF NOT EXISTS dealer_margin     NUMERIC,
+        ADD COLUMN IF NOT EXISTS realisation       NUMERIC,
+        ADD COLUMN IF NOT EXISTS expected_revenue  NUMERIC,
+        ADD COLUMN IF NOT EXISTS deal_stage        TEXT,
+        ADD COLUMN IF NOT EXISTS linked_to         TEXT,
+        ADD COLUMN IF NOT EXISTS extra_info        JSONB,
+        ADD COLUMN IF NOT EXISTS npd               INTEGER
+    `);
+    res.json({ ok: true, message: 'Migration complete' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await client.end().catch(() => {});
+  }
 });
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
