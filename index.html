@@ -437,7 +437,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
         <div class="fg">
           <label class="lbl">Territory Manager</label>
           <select class="sel" id="f-tm" onchange="onTMChange()">
-            <option>Arjun Mehta</option><option>Sunita Rao</option>
+            <option>Raj Kumar</option><option>Arjun Mehta</option><option>Sunita Rao</option>
             <option>Deepak Joshi</option><option>Meena Pillai</option><option>Rahul Desai</option>
           </select>
         </div>
@@ -595,6 +595,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
     <div class="tbl-wrap"><table>
       <thead><tr><th>TM Name</th><th>RSM</th><th>ZSM</th><th>Region Head / NSM</th><th>Region</th></tr></thead>
       <tbody>
+        <tr><td>Raj Kumar</td><td>Priya Singh</td><td>Anil Mehta</td><td>Sunita Rao</td><td>North</td></tr>
         <tr><td>Arjun Mehta</td><td>Ravi Sharma</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
         <tr><td>Sunita Rao</td><td>Vikram Patel</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
         <tr><td>Deepak Joshi</td><td>Kavya Reddy</td><td>Suresh Iyer</td><td>Anand Kumar</td><td>South</td></tr>
@@ -671,6 +672,7 @@ const API_BASE = 'https://spa-app-orpin.vercel.app';
 // DATA
 // ══════════════════════════════════════════
 const HIER = {
+  "Raj Kumar":    {rsm:"Priya Singh",  zsm:"Anil Mehta",   nsm:"Sunita Rao",  cm:"Vikram Nair",    region:"North"},
   "Arjun Mehta":  {rsm:"Ravi Sharma",  zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
   "Sunita Rao":   {rsm:"Vikram Patel", zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
   "Deepak Joshi": {rsm:"Kavya Reddy",  zsm:"Suresh Iyer",  nsm:"Anand Kumar", cm:"Rajiv Mehrotra", region:"South"},
@@ -826,6 +828,9 @@ function getApproverName(tm,tier){
 }
 
 let requests = [
+  // Raj Kumar (real Supabase TM) demo requests — shown until real DB data loads
+  {id:"SPA-020",date:"2026-03-20",tm:"Raj Kumar",customer:"Apollo Hospitals Delhi",product:"Alterna 1PC OPEN MX TR 10/80MM",stdPrice:431,reqPrice:340,volume:200,justification:"Tender for annual supply to Apollo chain — North region",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null,sdrPct:20.9},
+  {id:"SPA-021",date:"2026-03-22",tm:"Raj Kumar",customer:"Max Healthcare",product:"2PC URO maxi opaque 40mm U",stdPrice:374,reqPrice:260,volume:500,justification:"Volume deal for 3 hospitals, 500 units per month",dealStage:"Final / Closing",status:"Approved",tier:"ZSM",linkedTo:null,extraInfo:null,sdrPct:28.1},
   {id:"SPA-001",date:"2026-03-01",tm:"Arjun Mehta",customer:"Tata Motors Ltd",product:"HydraComp X200",stdPrice:12500,reqPrice:10800,volume:500,compPrice:10500,justification:"Competitor offering same spec at ₹10,500 for bulk order",dealStage:"Negotiation In Progress",status:"Pending RSM",tier:"RSM",linkedTo:null,extraInfo:null},
   {id:"SPA-002",date:"2026-03-02",tm:"Sunita Rao",customer:"Mahindra & Mahindra",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:7700,volume:1200,compPrice:7500,justification:"Long-term account, 3yr contract opportunity",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
   {id:"SPA-003",date:"2026-03-03",tm:"Deepak Joshi",customer:"Bajaj Auto",product:"ThermoShield 120",stdPrice:15000,reqPrice:12000,volume:300,compPrice:11800,justification:"New customer acquisition — strategic account",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null},
@@ -923,7 +928,7 @@ function getRoleVisibleRequests() {
 function renderDash(){
   // ── Role-filtered dataset ──
   var visible = getRoleVisibleRequests();
-  var myPending = visible.filter(r=>r.status.startsWith('Pending'));
+  var myPending = visible.filter(r=>(r.status||'').startsWith('Pending'));
 
   // KPIs — scoped to what this role can see
   var total    = visible.length;
@@ -985,7 +990,7 @@ function renderAll(){
   var base = getRoleVisibleRequests();
 
   const list=base.filter(r=>
-    (!s||r.customer.toLowerCase().includes(s)||r.product.toLowerCase().includes(s)||r.id.toLowerCase().includes(s))&&
+    (!s||(r.customer||'').toLowerCase().includes(s)||(r.product||'').toLowerCase().includes(s)||(r.id||'').toLowerCase().includes(s))&&
     (!fSt||r.status===fSt)&&
     (!fStg||r.dealStage===fStg)&&
     (!fT||r.tier===fT||(fT==='Country Manager'&&r.tier==='CM'))
@@ -1314,7 +1319,9 @@ function submitRequest(){
       acctClass:document.getElementById('f-acct-class').value,stratJust:stratJ};
   }
 
-  const id='SPA-'+String(requests.length+1).padStart(3,'0');
+  // Generate next ID from the highest numeric suffix in existing requests
+  const maxNum=requests.reduce((m,r)=>{const n=parseInt((r.id||'').replace('SPA-',''))||0;return Math.max(m,n);},0);
+  const id='SPA-'+String(maxNum+1).padStart(3,'0');
   const skuLabel=validRows.length===1
     ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
     : validRows.length+' products';
@@ -1731,7 +1738,7 @@ function logout() {
 // ── ROLE QUEUE COUNT (live) ──
 function getRoleQueueCount() {
   if (!_role) return 0;
-  if (_role==='TM')  return requests.filter(r=>r.status.startsWith('Pending')&&r.tm===_name).length;
+  if (_role==='TM')  return requests.filter(r=>(r.status||'').startsWith('Pending')&&r.tm===_name).length;
   if (_role==='RSM') return requests.filter(r=>r.status==='Pending RSM').length;
   if (_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM').length;
   if (_role==='NSM') return requests.filter(r=>r.status==='Pending NSM').length;

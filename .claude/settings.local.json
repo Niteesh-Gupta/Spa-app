@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(git:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(vercel logs:*)",
+      "Bash(npx vercel:*)",
+      "Bash(npm install:*)",
+      "Bash(vercel:*)",
+      "Bash(gh api:*)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Niteeshcomex/SDR-Portal/main/index.html\" -o /tmp/sdr_index.html)",
+      "Bash(curl -v \"https://raw.githubusercontent.com/Niteeshcomex/SDR-Portal/main/index.html\")",
+      "Bash(curl -s \"https://api.github.com/repos/Niteeshcomex/SDR-Portal/branches\")",
+      "Bash(python3:*)",
+      "Bash(cmd /c \"python --version\")",
+      "Bash(cmd /c \"where python\")",
+      "Bash(node -e \"require\\(''''xlsx''''\\)\")",
+      "Bash(supabase --version)",
+      "Bash(npx supabase:*)"
     ]
   }
 }
