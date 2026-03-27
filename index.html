@@ -404,46 +404,41 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 <!-- ══════════ NEW REQUEST ══════════ -->
 <div class="page" id="page-newreq">
   <div class="ph">
-    <div class="ph-left"><div class="ph-title" id="form-page-title">New Price Approval Request</div><div class="ph-sub" id="form-page-sub">Submit for multi-level approval based on discount threshold</div></div>
+    <div class="ph-left"><div class="ph-title" id="form-page-title">New Price Approval Request</div><div class="ph-sub" id="form-page-sub">Submit for multi-level approval based on SDR%</div></div>
   </div>
 
   <!-- re-raise notice -->
   <div id="reraise-notice" style="display:none;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;">
-    <div style="font-size:11px;font-weight:800;color:var(--navy2);margin-bottom:6px;">🔗 Re-raise Linked to Previous Request</div>
+    <div style="font-size:11px;font-weight:800;color:var(--navy2);margin-bottom:6px;">Re-raise Linked to Previous Request</div>
     <div id="reraise-notice-body" style="font-size:11px;color:var(--muted);line-height:1.7;"></div>
   </div>
 
+  <!-- Account Details -->
   <div class="card" style="margin-bottom:16px;">
-    <div class="card-hd"><span class="card-title">Request Details</span></div>
+    <div class="card-hd"><span class="card-title">Account Details</span></div>
     <div style="padding:20px;">
       <div class="form-grid">
+        <div class="fg">
+          <label class="lbl">Date</label>
+          <input class="inp" id="f-date" readonly>
+        </div>
+        <div class="fg">
+          <label class="lbl">Hospital / Account Name <span style="color:var(--red)">*</span></label>
+          <input class="inp" id="f-customer" placeholder="e.g. Aster Medicity">
+        </div>
+        <div class="fg">
+          <label class="lbl">Dealer Name <span style="color:var(--red)">*</span></label>
+          <input class="inp" id="f-dealer" placeholder="e.g. Medline Supplies Pvt Ltd">
+        </div>
+        <div class="fg">
+          <label class="lbl">Sales Region &amp; Zone</label>
+          <input class="inp" id="f-region" readonly>
+        </div>
         <div class="fg">
           <label class="lbl">Territory Manager</label>
           <select class="sel" id="f-tm" onchange="onTMChange()">
             <option>Arjun Mehta</option><option>Sunita Rao</option>
             <option>Deepak Joshi</option><option>Meena Pillai</option><option>Rahul Desai</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label class="lbl">Customer Name</label>
-          <input class="inp" id="f-customer" placeholder="e.g. Tata Motors Ltd" list="cust-list">
-          <datalist id="cust-list">
-            <option>Tata Motors Ltd</option><option>Mahindra & Mahindra</option>
-            <option>Bajaj Auto</option><option>TVS Motor Co</option><option>Hero MotoCorp</option>
-            <option>Ashok Leyland</option><option>Force Motors</option><option>Eicher Motors</option>
-            <option>Maruti Suzuki</option><option>Royal Enfield</option>
-          </datalist>
-        </div>
-        <div class="fg">
-          <label class="lbl">Product / SKU</label>
-          <select class="sel" id="f-product" onchange="onProductChange()">
-            <option value="">— Select —</option>
-            <option data-p="12500" data-fl="9500">HydraComp X200</option>
-            <option data-p="8800"  data-fl="7000">FlexSeal Pro 44</option>
-            <option data-p="15000" data-fl="11500">ThermoShield 120</option>
-            <option data-p="22000" data-fl="18000">VibraStop 88</option>
-            <option data-p="6500"  data-fl="5200">RotoClamp 500</option>
-            <option data-p="31000" data-fl="25000">PneumaMax 900</option>
           </select>
         </div>
         <div class="fg">
@@ -456,73 +451,80 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
           </select>
         </div>
         <div class="fg">
-          <label class="lbl">MRP (₹)</label>
-          <input class="inp" id="f-std" readonly>
+          <label class="lbl">Expected NPD for the Year</label>
+          <input class="inp" id="f-npd" type="number" placeholder="e.g. 120">
         </div>
         <div class="fg">
-          <label class="lbl">DP — Dealer Price (₹)</label>
-          <input class="inp" id="f-floor" readonly>
-        </div>
-        <div class="fg">
-          <label class="lbl">Supply Price (₹)</label>
-          <input class="inp" id="f-req" type="number" placeholder="Price charged to customer" oninput="onCalcChange()">
-        </div>
-        <div class="fg">
-          <label class="lbl">Dealer Margin (%)</label>
-          <input class="inp" id="f-dealer-margin" type="number" placeholder="e.g. 15" oninput="onCalcChange()">
-        </div>
-        <div class="fg">
-          <label class="lbl">Coloplast Realisation (₹)</label>
-          <input class="inp" id="f-realisation" readonly placeholder="—">
-        </div>
-        <div class="fg">
-          <label class="lbl">SDR %</label>
-          <div class="disc-pill" id="f-disc">—</div>
-        </div>
-        <div class="fg">
-          <label class="lbl">Deal Volume (Units)</label>
-          <input class="inp" id="f-vol" type="number" placeholder="e.g. 500" oninput="onCalcChange()">
-        </div>
-        <div class="fg">
-          <label class="lbl">Expected Revenue (₹)</label>
-          <input class="inp" id="f-revenue" readonly placeholder="—">
-        </div>
-        <div class="fg">
-          <label class="lbl">Competitor Ref Price (₹)</label>
-          <input class="inp" id="f-comp" type="number" placeholder="Optional">
+          <label class="lbl">Expected Surgeries (if no NPD)</label>
+          <input class="inp" id="f-surgeries" type="number" placeholder="e.g. 60">
         </div>
         <div class="fg full">
-          <label class="lbl">Justification / Reason</label>
+          <label class="lbl">Remarks / Justification <span style="color:var(--red)">*</span></label>
           <textarea class="txa" id="f-just" placeholder="Describe the business case — competitive situation, customer value, volume commitment, strategic importance..."></textarea>
-        </div>
-      </div>
-
-      <!-- Tier indicator -->
-      <div style="margin-top:14px;">
-        <div class="sec-div">Approval Routing</div>
-        <div class="tier-indicator" id="tier-ind">
-          <div class="tier-indicator-icon">📋</div>
-          <div>
-            <div class="tier-indicator-text">Select product and enter requested price to see approval routing</div>
-            <div class="tier-indicator-name" id="tier-ind-name">—</div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- EXTRA INFO — shown only when >40% -->
+  <!-- SKU Table -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd" style="display:flex;align-items:center;justify-content:space-between;">
+      <span class="card-title">Product Lines</span>
+      <button class="btn btn-navy btn-sm" onclick="addSKURow()">+ Add Product</button>
+    </div>
+    <div style="overflow-x:auto;padding:0 4px 12px;">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:1100px;">
+        <thead>
+          <tr style="background:var(--bg);border-bottom:2px solid var(--border);">
+            <th style="padding:8px 6px;text-align:left;width:28px;">#</th>
+            <th style="padding:8px 6px;text-align:left;min-width:170px;">Product Code</th>
+            <th style="padding:8px 6px;text-align:left;min-width:200px;">Description</th>
+            <th style="padding:8px 6px;text-align:right;">MRP/Pc (&#8377;)</th>
+            <th style="padding:8px 6px;text-align:right;">DP/Pc (&#8377;)</th>
+            <th style="padding:8px 6px;text-align:right;min-width:72px;">Qty</th>
+            <th style="padding:8px 6px;text-align:right;min-width:110px;">Supply Price (&#8377;)</th>
+            <th style="padding:8px 6px;text-align:right;min-width:100px;">Dealer Margin %</th>
+            <th style="padding:8px 6px;text-align:right;min-width:110px;">Realisation (&#8377;)</th>
+            <th style="padding:8px 6px;text-align:right;min-width:70px;">SDR%</th>
+            <th style="padding:8px 6px;text-align:right;min-width:120px;">Exp. Revenue (&#8377;)</th>
+            <th style="padding:8px 6px;text-align:center;width:44px;">Del</th>
+          </tr>
+        </thead>
+        <tbody id="sku-tbody">
+          <tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">No products yet — click &ldquo;+ Add Product&rdquo; to begin</td></tr>
+        </tbody>
+        <tfoot id="sku-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Approval Routing -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd"><span class="card-title">Approval Routing</span></div>
+    <div style="padding:16px 20px;">
+      <div class="tier-indicator" id="tier-ind">
+        <div class="tier-indicator-icon">&#128203;</div>
+        <div>
+          <div class="tier-indicator-text">Add products and enter supply prices to see approval routing</div>
+          <div class="tier-indicator-name" id="tier-ind-name">&#8212;</div>
+        </div>
+      </div>
+      <div class="tl" id="form-tl" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- EXTRA INFO — shown only when SDR >40% -->
   <div id="extra-info-section" style="display:none;">
     <div class="extra-info-box">
-      <div class="extra-info-title">⚠️ Additional Information Required — Country Manager Approval</div>
-      <div class="extra-info-sub">Discount exceeds 40%. Country Manager approval requires full account financial context and strategic justification.</div>
+      <div class="extra-info-title">Additional Information Required — Country Manager Approval</div>
+      <div class="extra-info-sub">SDR exceeds 40%. Country Manager approval requires full account financial context and strategic justification.</div>
       <div class="form-grid">
         <div class="fg">
-          <label class="lbl">Account Revenue Last Year (₹ Lakhs)</label>
+          <label class="lbl">Account Revenue Last Year (&#8377; Lakhs)</label>
           <input class="inp" id="f-rev-ly" type="number" placeholder="e.g. 45">
         </div>
         <div class="fg">
-          <label class="lbl">Expected Revenue This Year (₹ Lakhs)</label>
+          <label class="lbl">Expected Revenue This Year (&#8377; Lakhs)</label>
           <input class="inp" id="f-rev-ty" type="number" placeholder="e.g. 65">
         </div>
         <div class="fg">
@@ -541,34 +543,16 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
         </div>
         <div class="fg full">
           <label class="lbl">Strategic Justification (Why Country Manager should approve)</label>
-          <textarea class="txa" id="f-strat-just" placeholder="Explain the long-term strategic value, competitive threat, or business impact that justifies this exceptional discount level..."></textarea>
+          <textarea class="txa" id="f-strat-just" placeholder="Explain the long-term strategic value, competitive threat, or business impact..."></textarea>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Approval timeline preview -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-hd"><span class="card-title">Approval Route Preview</span></div>
-    <div style="padding:16px 20px;">
-      <div class="tl" id="form-tl"></div>
-    </div>
-  </div>
+  <div id="ai-pre-panel" style="display:none;"></div>
 
-  <!-- AI pre-analysis -->
-  <div id="ai-pre-panel" style="display:none;">
-    <div class="ai-wrap">
-      <div class="ai-hd">
-        <span style="font-size:18px;">🤖</span>
-        <div><div class="ai-lbl">AI Agent</div><div class="ai-ttl">Pre-Submission Analysis</div></div>
-      </div>
-      <div class="ai-out" id="ai-pre-out"></div>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-    <!-- AI Pre-Analysis removed -->
-    <button class="btn btn-navy" onclick="submitRequest()">Submit Request →</button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+    <button class="btn btn-navy" onclick="submitRequest()">Submit Request &#8594;</button>
     <button class="btn btn-ghost" onclick="nav('requests',null)">Cancel</button>
   </div>
 </div>
@@ -693,14 +677,142 @@ const HIER = {
   "Meena Pillai": {rsm:"Ravi Sharma",  zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
   "Rahul Desai":  {rsm:"Vikram Patel", zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
 };
-const PRODUCTS = {
-  "HydraComp X200":  {std:12500,floor:9500},
-  "FlexSeal Pro 44": {std:8800, floor:7000},
-  "ThermoShield 120":{std:15000,floor:11500},
-  "VibraStop 88":    {std:22000,floor:18000},
-  "RotoClamp 500":   {std:6500, floor:5200},
-  "PneumaMax 900":   {std:31000,floor:25000},
-};
+const PRODUCT_CATALOG = [
+  {code:"1268001664", desc:"Alterna 1PC OPEN MX TR 10/80MM", mrp:431, dp:317},
+  {code:"1746701664", desc:"1PC OPEN CHILD TRSP 10/35MM U", mrp:337, dp:247},
+  {code:"1748001664", desc:"1PC URO child transp 10/35mm U", mrp:539, dp:395},
+  {code:"1748201664", desc:"1PC CVX URO MAXI TR 15 - 43M U", mrp:562, dp:412},
+  {code:"1750001664", desc:"1P ILEO MAX Classic  12/75MM U", mrp:306, dp:225},
+  {code:"1750101664", desc:"1P ILEO MAX TRAN 12/75MM  U", mrp:298, dp:219},
+  {code:"1751101664", desc:"CONV 1PC ILEO MAXI CL15-43MM U", mrp:369, dp:270},
+  {code:"1751201664", desc:"CXL 1PC ILEO MAX CL 15-43MM U", mrp:369, dp:270},
+  {code:"1751501664", desc:"CON 1PC ILEO MAXI TR 15-43MM U", mrp:369, dp:270},
+  {code:"1751701664", desc:"CXL 1PC ILEO MAX TR 15-43MM U", mrp:369, dp:270},
+  {code:"1752201664", desc:"1P URO II MAX TRAN U", mrp:437, dp:321},
+  {code:"1752501664", desc:"1PC URO II Con.Li mx wh 60mm U", mrp:548, dp:402},
+  {code:"1752701664", desc:"1PC URO II Con.Li mx tr 60mm U", mrp:548, dp:402},
+  {code:"0197101664", desc:"ALTERNA LONGWEAR FLEXIBLE 40MM", mrp:402, dp:293},
+  {code:"0197201664", desc:"ALTERNA LONGWEAR FLEXIBLE 50MM", mrp:402, dp:293},
+  {code:"0197301664", desc:"ALTERNA LONGWEAR FLEXIBLE 60MM", mrp:402, dp:293},
+  {code:"1397601664", desc:"2PC ILEO MAXI TRANSP 60MM", mrp:283, dp:207},
+  {code:"1398401664", desc:"2PC ILEO MAXI CLASSIC 40MM", mrp:297, dp:219},
+  {code:"1398501664", desc:"2PC ILEO MAXI CLASSIC 50MM", mrp:297, dp:219},
+  {code:"1398601664", desc:"2PC ILEO MAXI CLASSIC 60MM", mrp:297, dp:219},
+  {code:"1763401664", desc:"2PC URO maxi opaque 40mm U", mrp:374, dp:273},
+  {code:"1763501664", desc:"2PC URO maxi opaque 50mm U", mrp:374, dp:273},
+  {code:"1763601664", desc:"2PC URO maxi opaque 60mm U", mrp:374, dp:273},
+  {code:"1770101664", desc:"PLATE 2PC O97/10-40 W/E U", mrp:402, dp:293},
+  {code:"1770601664", desc:"PLATE 2PC O97/10-50 W/E U", mrp:402, dp:293},
+  {code:"1771001664", desc:"PLATE 2PC O107/10-60 W/E U", mrp:402, dp:293},
+  {code:"1773501664", desc:"2P CNV L tera 40mm 15/23 cut U", mrp:458, dp:334},
+  {code:"1773701664", desc:"2P CNV L tera 50mm 15/33 cut U", mrp:458, dp:334},
+  {code:"1774101664", desc:"2P CNV L tera 60mm 15/43 cut U", mrp:458, dp:334},
+  {code:"1776101664", desc:"2P CNV pl tera 40mm 27/15cut U", mrp:458, dp:334},
+  {code:"1776201664", desc:"CONV 2PC TERA 50MM 37/15 CUT U", mrp:458, dp:334},
+  {code:"1776301664", desc:"CV 2PC TER 60MM 47/15 CUT U", mrp:458, dp:334},
+  {code:"0516101664", desc:"Conveen Sec+,500/50", mrp:185, dp:143},
+  {code:"0505011664", desc:"Conveen Leg Bag Straps", mrp:404, dp:275},
+  {code:"0520001664", desc:"Conveen SSU O25", mrp:133, dp:105},
+  {code:"0520501664", desc:"Conveen SSU O30", mrp:133, dp:105},
+  {code:"0521001664", desc:"Conveen SSU O35", mrp:133, dp:105},
+  {code:"0471501664", desc:"COMFEEL CLEANSER-HK SACHET", mrp:37, dp:27},
+  {code:"0472001664", desc:"COMFEEL BARRIER CR-HK 60 ML", mrp:1005, dp:770},
+  {code:"0190201664", desc:"LC2000 OSTAMYBAG, OPEN,15MM", mrp:191, dp:157},
+  {code:"0191001664", desc:"LC UROSTOMY BAG,BEIGE", mrp:298, dp:241},
+  {code:"0950301664", desc:"CLAMP WITH CARD", mrp:76, dp:59},
+  {code:"1405001664", desc:"Fistula and wound man.sys.mini", mrp:5176, dp:4116},
+  {code:"1406001664", desc:"Fistula and wound man.sys.midi", mrp:7935, dp:6308},
+  {code:"1407001664", desc:"Fistula and wound man.sys.maxi", mrp:8282, dp:6583},
+  {code:"1180401664", desc:"SenSura Uro 1pc maxi trp.10-76", mrp:496, dp:368},
+  {code:"1181401664", desc:"SenSura Uro 1p CL mx tr 15-33", mrp:672, dp:498},
+  {code:"1181501664", desc:"SenSura Uro 1p CL mx tr 15-43", mrp:672, dp:498},
+  {code:"1520501664", desc:"SenSura 1p mx op CX trp 15/33", mrp:511, dp:379},
+  {code:"1520601664", desc:"SenSura 1p mx op CX trp 15/43", mrp:511, dp:379},
+  {code:"1520901664", desc:"SenSura+ 1p mx op CX W/W 15/43", mrp:511, dp:379},
+  {code:"1557001664", desc:"SenSura 1p mx op trp 10/76", mrp:387, dp:287},
+  {code:"1902001664", desc:"SenSu PO window non-ste 70mm", mrp:1256, dp:898},
+  {code:"1902101664", desc:"SenS PO window non-ste 100mm", mrp:1499, dp:1144},
+  {code:"1001101664", desc:"SenSura std.w/ear 40mm 10-35mm", mrp:482, dp:357},
+  {code:"1001501664", desc:"SenSura ext. w/ear 40 mm 10-35", mrp:482, dp:357},
+  {code:"1002101664", desc:"SenSura std.w/ear 50mm 10-45mm", mrp:482, dp:357},
+  {code:"1002501664", desc:"SenSura ext. w/ear 50 mm 10-45", mrp:482, dp:357},
+  {code:"1003101664", desc:"SenSura std.w/ear 60mm 10-55mm", mrp:482, dp:357},
+  {code:"1003501664", desc:"SenSura ext. w/ear 60 mm 10-55", mrp:482, dp:357},
+  {code:"1004511664", desc:"Coloplast ext. w/ 70 mm 10-65", mrp:482, dp:357},
+  {code:"1036401664", desc:"SenSura 2p mx op opq 40mm", mrp:329, dp:244},
+  {code:"1036501664", desc:"SenSura 2p mx op opq 50mm", mrp:329, dp:244},
+  {code:"1036601664", desc:"SenSura 2p mx op opq 60mm", mrp:329, dp:244},
+  {code:"1036701664", desc:"SenSura 2p mx op opq 70mm", mrp:329, dp:244},
+  {code:"1038501664", desc:"SenSura 2p mx op trp 50mm", mrp:321, dp:238},
+  {code:"1038601664", desc:"SenSura 2p mx op trp 60mm", mrp:321, dp:238},
+  {code:"1038711664", desc:"Coloplast 2pc maxiop. trsp70mm", mrp:321, dp:238},
+  {code:"1102101664", desc:"SenSura std.Conv.Li.50mm 15-33", mrp:540, dp:400},
+  {code:"1102501664", desc:"SenSura ext.Conv.Li.50mm 15-33", mrp:540, dp:400},
+  {code:"1103101664", desc:"SenSura std.Conv.Li.60mm 15-43", mrp:540, dp:400},
+  {code:"1103501664", desc:"SenSura ext.Conv.Li.60mm 15-43", mrp:540, dp:400},
+  {code:"1104101664", desc:"SenSura std.Conv.Li.70mm 15-53", mrp:540, dp:400},
+  {code:"1104501664", desc:"SenSura ext Conv.Li 70mm 15-53", mrp:540, dp:400},
+  {code:"1185401664", desc:"SenSura Uro Click maxi trp.40", mrp:390, dp:289},
+  {code:"1185501664", desc:"SenSura Uro Click maxi trp. 50", mrp:390, dp:289},
+  {code:"1185601664", desc:"SenSura Uro Click maxi trp. 60", mrp:390, dp:289},
+  {code:"1045101664", desc:"Mio430 1p op mx w/w 10-55", mrp:580, dp:415},
+  {code:"1045801664", desc:"Mio430 1p op mx trp 10-55", mrp:568, dp:421},
+  {code:"1058201664", desc:"Mio 1p uro mx opq 10-45", mrp:686, dp:504},
+  {code:"1058601664", desc:"Mio 1p uro mx trp 10-45", mrp:686, dp:504},
+  {code:"1640501664", desc:"Mio430 1p soft op mx 15-33", mrp:613, dp:450},
+  {code:"1640601664", desc:"Mio430 1p soft op mx 10-50", mrp:613, dp:450},
+  {code:"1641501664", desc:"Mio430 1p soft op mx trp 10-50", mrp:613, dp:450},
+  {code:"1642601664", desc:"Mio430 1p light op mx 15-33", mrp:660, dp:486},
+  {code:"1642701664", desc:"Mio430 1p light op mx 31-43", mrp:660, dp:486},
+  {code:"1644601664", desc:"Mio430 1p deep op mx 15-33", mrp:660, dp:486},
+  {code:"1644701664", desc:"Mio430 1p deep op mx 31-43", mrp:660, dp:486},
+  {code:"1681001664", desc:"Mio 1p soft Uro mx trp 10-50", mrp:736, dp:541},
+  {code:"1682601664", desc:"Mio 1p light Uro mx 15-33", mrp:793, dp:582},
+  {code:"1682701664", desc:"Mio 1p light Uro mx 31-43", mrp:793, dp:582},
+  {code:"1685601664", desc:"Mio 1p deep Uro mx 15-33", mrp:793, dp:582},
+  {code:"1685701664", desc:"Mio 1p deep Uro mx 31-43", mrp:793, dp:582},
+  {code:"1869001664", desc:"Colo nonste PO trp 10-70mm", mrp:1621, dp:1199},
+  {code:"1869101664", desc:"Colo nonste PO trp 10-100mm", mrp:1960, dp:1439},
+  {code:"1051201664", desc:"Mio Click wE 50mm 10-45", mrp:580, dp:426},
+  {code:"1052201664", desc:"Mio Click wE 60mm 10-55", mrp:580, dp:426},
+  {code:"1053101664", desc:"Mio Click wE 70mm 10-65", mrp:580, dp:426},
+  {code:"1143201664", desc:"Mio430 Click op mx w/w 40mm", mrp:465, dp:343},
+  {code:"1143301664", desc:"Mio430 Click op mx trp 40mm", mrp:449, dp:330},
+  {code:"1144301664", desc:"Mio430 Click op mx w/w 50mm", mrp:465, dp:343},
+  {code:"1144401664", desc:"Mio430 Click op mx trp 50mm", mrp:449, dp:330},
+  {code:"1145201664", desc:"Mio430 Click op mx w/w 60mm", mrp:465, dp:343},
+  {code:"1145301664", desc:"Mio430 Click op mx trp 60mm", mrp:449, dp:330},
+  {code:"1145601664", desc:"Mio430 Click op mx w/w 70mm", mrp:465, dp:343},
+  {code:"1145701664", desc:"Mio430 Click op mx trp 70mm", mrp:449, dp:330},
+  {code:"1149101664", desc:"Mio Click uro mx 40mm", mrp:613, dp:450},
+  {code:"1149201664", desc:"Mio Click uro mx trp 40mm", mrp:587, dp:432},
+  {code:"1149701664", desc:"Mio Click uro mx 50mm", mrp:613, dp:450},
+  {code:"1149801664", desc:"Mio Click uro mx trp 50mm", mrp:587, dp:432},
+  {code:"1149901664", desc:"Mio Click uro mx 60mm", mrp:613, dp:450},
+  {code:"1150001664", desc:"Mio Click uro mx trp 60mm", mrp:587, dp:432},
+  {code:"1691101664", desc:"Mio Click 50mm cvx light 15-30", mrp:736, dp:541},
+  {code:"1692101664", desc:"Mio Click 60mm cvx light 15-40", mrp:736, dp:541},
+  {code:"1695101664", desc:"Mio Click 50mm cvx deep 15-30", mrp:736, dp:541},
+  {code:"1696101664", desc:"Mio Click 60mm cvx deep 15-40", mrp:736, dp:541},
+  {code:"0042301664", desc:"SenSura Mio Belt Standard", mrp:701, dp:537},
+  {code:"0042401664", desc:"SenSura Mio Belt XXL", mrp:819, dp:627},
+  {code:"0042151664", desc:"Belt standard size", mrp:606, dp:455},
+  {code:"0190701664", desc:"OSTOMY POWDER, 25G", mrp:504, dp:387},
+  {code:"0265001664", desc:"COLOPLAST PASTE", mrp:942, dp:748},
+  {code:"0321051664", desc:"Protective Sheet 10X10 cm", mrp:240, dp:168},
+  {code:"0321551664", desc:"Protective Sheet 15X15 cm", mrp:407, dp:284},
+  {code:"0322001664", desc:"Coloplast Plate 20x20cm", mrp:754, dp:578},
+  {code:"1201051664", desc:"Adhesive Remover Spray, IN", mrp:870, dp:666},
+  {code:"1201151664", desc:"Brava Remover Wipe", mrp:51, dp:33},
+  {code:"1203071664", desc:"Brava Mouldable Rings 2 mm", mrp:149, dp:114},
+  {code:"1204271664", desc:"Mouldable Rings 4,2 mm", mrp:172, dp:132},
+  {code:"1205001664", desc:"Brava Paste", mrp:792, dp:607},
+  {code:"1206101664", desc:"Brava Lubricating Deodorant", mrp:1105, dp:753},
+  {code:"1207001664", desc:"Brava Tape IN", mrp:117, dp:90},
+  {code:"1207201664", desc:"Brava Elastic Tape belt", mrp:117, dp:90},
+];
+const PRODUCT_MAP = {};
+PRODUCT_CATALOG.forEach(p => { PRODUCT_MAP[p.code] = p; });
 
 function getTier(d){
   if(d<15)  return {tier:"RSM",   label:"RSM",             cls:"tier-rsm",  status:"Pending RSM"};
@@ -730,6 +842,8 @@ let requests = [
 
 let apiKey = "";
 let reraiseFrom = null;
+var skuRows = [];
+var skuRowNextId = 1;
 
 // ══════════════════════════════════════════
 // HELPERS
@@ -902,107 +1016,235 @@ function renderAll(){
 }
 
 // ══════════════════════════════════════════
-// FORM
+// FORM — multi-SKU
 // ══════════════════════════════════════════
 function initForm(){
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  skuRows = [];
+  skuRowNextId = 1;
+
   if(reraiseFrom){
     const prev = requests.find(r=>r.id===reraiseFrom);
     document.getElementById('form-page-title').textContent='Re-raise Price Request';
-    document.getElementById('form-page-sub').textContent=`Linked to rejected request ${reraiseFrom}`;
+    document.getElementById('form-page-sub').textContent='Linked to rejected request '+reraiseFrom;
     const notice = document.getElementById('reraise-notice');
     notice.style.display='block';
     document.getElementById('reraise-notice-body').innerHTML=
-      `<strong>Previous Request:</strong> ${reraiseFrom} | ${prev.customer} | ${prev.product}<br>
-       <strong>Previous Supply Price:</strong> ${INR(prev.reqPrice)} &nbsp;·&nbsp; <strong>SDR:</strong> ${prev.sdrPct!==undefined ? prev.sdrPct.toFixed(1)+'%' : DISC_FMT(prev.stdPrice,prev.reqPrice)}<br>
-       <strong>Rejection reason carried forward — please revise pricing and justification.</strong>`;
-    // Pre-fill
+      '<strong>Previous Request:</strong> '+reraiseFrom+' | '+(prev?prev.customer:'')+'<br>'+
+      '<strong>Rejection reason carried forward — please revise pricing and justification.</strong>';
     setTimeout(()=>{
-      document.getElementById('f-tm').value=prev.tm;
-      document.getElementById('f-customer').value=prev.customer;
-      document.getElementById('f-product').value=prev.product;
-      document.getElementById('f-stage').value='Negotiation In Progress';
-      onTMChange(); onProductChange();
+      document.getElementById('f-tm').value = (prev&&prev.tm)||'';
+      document.getElementById('f-customer').value = (prev&&prev.customer)||'';
+      document.getElementById('f-dealer').value = (prev&&prev.dealer)||'';
+      document.getElementById('f-just').value = '';
+      onTMChange();
     },50);
   } else {
     document.getElementById('form-page-title').textContent='New Price Approval Request';
     document.getElementById('form-page-sub').textContent='Submit for multi-level approval based on SDR%';
     document.getElementById('reraise-notice').style.display='none';
-    // reset
-    ['f-customer','f-req','f-vol','f-comp','f-just','f-dealer-margin','f-realisation','f-revenue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    document.getElementById('f-product').value='';
-    document.getElementById('f-std').value='';
-    document.getElementById('f-floor').value='';
-    document.getElementById('f-disc').textContent='—';
-    document.getElementById('f-disc').className='disc-pill';
+    ['f-customer','f-dealer','f-npd','f-surgeries','f-just'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
     document.getElementById('extra-info-section').style.display='none';
     document.getElementById('ai-pre-panel').style.display='none';
-    renderFormTimeline(null,null);
-    updateTierIndicator(null);
+    onTMChange();
+  }
+
+  renderSKUTable();
+  updateTierIndicator(null, null);
+  renderFormTimeline(null, null);
+}
+
+function onTMChange(){
+  const tm = document.getElementById('f-tm').value;
+  const h = HIER[tm]||{};
+  document.getElementById('f-region').value = h.region ? h.region+' Zone' : '';
+  renderFormTimeline(null, null);
+}
+
+// ── SKU management ──
+function addSKURow(){
+  const id = skuRowNextId++;
+  skuRows.push({id, code:'', desc:'', mrp:0, dp:0, qty:'', sp:'', dm:'', realisation:0, sdr:null, revenue:0});
+  renderSKUTable();
+}
+
+function removeSKURow(id){
+  skuRows = skuRows.filter(r=>r.id!==id);
+  renderSKUTable();
+  updateSKUSummary();
+}
+
+function onSKUCodeChange(id, val){
+  const row = skuRows.find(r=>r.id===id);
+  if(!row) return;
+  // support "CODE — desc" format from datalist
+  const code = val.split('—')[0].trim();
+  row.code = code;
+  const p = PRODUCT_MAP[code];
+  if(p){ row.desc=p.desc; row.mrp=p.mrp; row.dp=p.dp; }
+  else { row.desc=''; row.mrp=0; row.dp=0; }
+  computeSKURow(row);
+  // update the desc/mrp/dp cells without full re-render
+  const descEl=document.getElementById('sku-desc-'+id);
+  const mrpEl=document.getElementById('sku-mrp-'+id);
+  const dpEl=document.getElementById('sku-dp-'+id);
+  if(descEl) descEl.textContent = row.desc||'—';
+  if(mrpEl)  mrpEl.textContent  = row.mrp ? INR(row.mrp) : '—';
+  if(dpEl)   dpEl.textContent   = row.dp  ? INR(row.dp)  : '—';
+  refreshSKUComputedCells(row);
+  updateSKUSummary();
+}
+
+function onSKUFieldChange(id, field, val){
+  const row = skuRows.find(r=>r.id===id);
+  if(!row) return;
+  row[field] = val;
+  computeSKURow(row);
+  refreshSKUComputedCells(row);
+  updateSKUSummary();
+}
+
+function computeSKURow(row){
+  const sp  = parseFloat(row.sp);
+  const dm  = parseFloat(row.dm);
+  const qty = parseInt(row.qty);
+  const dp  = row.dp;
+  if(dp && !isNaN(sp) && sp>0 && !isNaN(dm) && dm>=0){
+    row.realisation = Math.round(sp/(1+dm/100));
+    row.sdr = (dp-row.realisation)/dp*100;
+    row.revenue = (!isNaN(qty)&&qty>0) ? qty*row.realisation : 0;
+  } else {
+    row.realisation=0; row.sdr=null; row.revenue=0;
   }
 }
 
-function onTMChange(){ renderFormTimeline(null, null); }
-
-function onProductChange(){
-  const sel=document.getElementById('f-product');
-  const opt=sel.options[sel.selectedIndex];
-  const p=opt.dataset.p,fl=opt.dataset.fl;
-  document.getElementById('f-std').value=p?INR(parseInt(p)):'';
-  document.getElementById('f-floor').value=fl?INR(parseInt(fl)):'';
-  onCalcChange();
+function refreshSKUComputedCells(row){
+  const realEl=document.getElementById('sku-real-'+row.id);
+  const sdrEl =document.getElementById('sku-sdr-'+row.id);
+  const revEl =document.getElementById('sku-rev-'+row.id);
+  if(!realEl) return;
+  if(row.sdr!==null){
+    realEl.textContent = INR(row.realisation);
+    sdrEl.textContent  = row.sdr.toFixed(1)+'%';
+    sdrEl.className    = 'disc-pill '+discClass(row.sdr);
+    revEl.textContent  = row.revenue>0 ? INR(row.revenue) : '—';
+  } else {
+    realEl.textContent='—';
+    sdrEl.textContent='—'; sdrEl.className='disc-pill';
+    revEl.textContent='—';
+  }
 }
 
-function onCalcChange(){
-  const dp  = parseFloat(document.getElementById('f-floor').value.replace(/[₹,]/g,''));
-  const sp  = parseFloat(document.getElementById('f-req').value);
-  const dm  = parseFloat(document.getElementById('f-dealer-margin').value);
-  const qty = parseInt(document.getElementById('f-vol').value);
-  const el  = document.getElementById('f-disc');
+function renderSKUTable(){
+  const tbody=document.getElementById('sku-tbody');
+  if(!tbody) return;
+  if(skuRows.length===0){
+    tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">No products yet — click &ldquo;+ Add Product&rdquo; to begin</td></tr>';
+    const tfoot=document.getElementById('sku-tfoot'); if(tfoot) tfoot.innerHTML='';
+    return;
+  }
+  // build datalist once
+  if(!document.getElementById('prod-dl')){
+    const dl=document.createElement('datalist');
+    dl.id='prod-dl';
+    dl.innerHTML=PRODUCT_CATALOG.map(p=>'<option value="'+p.code+'">'+p.code+' \u2014 '+p.desc+'</option>').join('');
+    document.body.appendChild(dl);
+  }
+  tbody.innerHTML=skuRows.map((row,i)=>{
+    const sdrTxt=row.sdr!==null ? row.sdr.toFixed(1)+'%' : '—';
+    const sdrCls=row.sdr!==null ? discClass(row.sdr) : '';
+    return '<tr style="border-bottom:1px solid var(--border);">'+
+      '<td style="padding:6px;color:var(--muted);">'+(i+1)+'</td>'+
+      '<td style="padding:4px 6px;">'+
+        '<input class="inp" style="font-size:11px;padding:5px 7px;min-width:150px;" list="prod-dl"'+
+        ' value="'+row.code+'" onchange="onSKUCodeChange('+row.id+',this.value)"'+
+        ' placeholder="Code or type name">'+
+      '</td>'+
+      '<td style="padding:6px;color:var(--muted);font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;" id="sku-desc-'+row.id+'">'+(row.desc||'—')+'</td>'+
+      '<td style="padding:6px;text-align:right;white-space:nowrap;" id="sku-mrp-'+row.id+'">'+(row.mrp?INR(row.mrp):'—')+'</td>'+
+      '<td style="padding:6px;text-align:right;white-space:nowrap;" id="sku-dp-'+row.id+'">'+(row.dp?INR(row.dp):'—')+'</td>'+
+      '<td style="padding:4px 6px;">'+
+        '<input class="inp" style="font-size:11px;padding:5px 7px;width:68px;" type="number" min="0"'+
+        ' value="'+row.qty+'" oninput="onSKUFieldChange('+row.id+',\'qty\',this.value)" placeholder="0">'+
+      '</td>'+
+      '<td style="padding:4px 6px;">'+
+        '<input class="inp" style="font-size:11px;padding:5px 7px;width:100px;" type="number" min="0"'+
+        ' value="'+row.sp+'" oninput="onSKUFieldChange('+row.id+',\'sp\',this.value)" placeholder="0">'+
+      '</td>'+
+      '<td style="padding:4px 6px;">'+
+        '<input class="inp" style="font-size:11px;padding:5px 7px;width:72px;" type="number" min="0" max="100"'+
+        ' value="'+row.dm+'" oninput="onSKUFieldChange('+row.id+',\'dm\',this.value)" placeholder="15">'+
+      '</td>'+
+      '<td style="padding:6px;text-align:right;font-weight:600;white-space:nowrap;" id="sku-real-'+row.id+'">'+(row.realisation?INR(row.realisation):'—')+'</td>'+
+      '<td style="padding:6px;text-align:right;">'+
+        '<span class="disc-pill '+sdrCls+'" id="sku-sdr-'+row.id+'">'+sdrTxt+'</span>'+
+      '</td>'+
+      '<td style="padding:6px;text-align:right;white-space:nowrap;" id="sku-rev-'+row.id+'">'+(row.revenue>0?INR(row.revenue):'—')+'</td>'+
+      '<td style="padding:6px;text-align:center;">'+
+        '<button class="btn btn-red btn-xs" onclick="removeSKURow('+row.id+')">&#10005;</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+  updateSKUSummary();
+}
 
-  if(dp && sp && !isNaN(dm) && dm >= 0){
-    // Formula 1: Coloplast Realisation = ROUND(Supply Price / (1 + Dealer Margin%), 0)
-    const realisation = Math.round(sp / (1 + dm / 100));
-    document.getElementById('f-realisation').value = INR(realisation);
-    // Formula 2: Expected Revenue = Qty × Coloplast Realisation
-    document.getElementById('f-revenue').value = (qty && !isNaN(qty)) ? INR(qty * realisation) : '—';
-    // Formula 3: SDR% = (DP - Coloplast Realisation) / DP
-    const sdr = (dp - realisation) / dp * 100;
-    el.textContent = sdr.toFixed(1)+'%';
-    el.className = 'disc-pill '+discClass(sdr);
-    const t = getTier(sdr);
-    updateTierIndicator(t);
-    renderFormTimeline(sdr, t);
-    document.getElementById('extra-info-section').style.display = sdr > 40 ? 'block' : 'none';
+function updateSKUSummary(){
+  const validRows=skuRows.filter(r=>r.sdr!==null);
+  const totalRevenue=skuRows.reduce((s,r)=>s+(r.revenue||0),0);
+  const totalQty=skuRows.reduce((s,r)=>s+(parseInt(r.qty)||0),0);
+  const maxSdr=validRows.length>0 ? Math.max(...validRows.map(r=>r.sdr)) : null;
+
+  const tfoot=document.getElementById('sku-tfoot');
+  if(tfoot && skuRows.length>0){
+    const sdrSumTxt = maxSdr!==null ? ('<span class="disc-pill '+discClass(maxSdr)+'" style="font-size:11px;">Max SDR: '+maxSdr.toFixed(1)+'%</span>') : '—';
+    tfoot.innerHTML='<tr style="background:var(--bg);border-top:2px solid var(--border);font-weight:700;">'+
+      '<td colspan="5" style="padding:8px 6px;font-size:11px;color:var(--muted);">TOTALS</td>'+
+      '<td style="padding:8px 6px;text-align:right;font-size:11px;">'+totalQty+'</td>'+
+      '<td colspan="3" style="padding:8px 6px;text-align:right;">'+sdrSumTxt+'</td>'+
+      '<td style="padding:8px 6px;"></td>'+
+      '<td style="padding:8px 6px;text-align:right;font-size:11px;color:var(--navy2);">'+(totalRevenue?INR(totalRevenue):'—')+'</td>'+
+      '<td style="padding:8px 6px;"></td>'+
+    '</tr>';
+  } else if(tfoot){ tfoot.innerHTML=''; }
+
+  if(maxSdr!==null){
+    const t=getTier(maxSdr);
+    updateTierIndicator(t, maxSdr);
+    renderFormTimeline(maxSdr, t);
+    document.getElementById('extra-info-section').style.display=maxSdr>40?'block':'none';
   } else {
-    document.getElementById('f-realisation').value = '';
-    document.getElementById('f-revenue').value = '';
-    el.textContent='—'; el.className='disc-pill';
-    updateTierIndicator(null);
+    updateTierIndicator(null, null);
     renderFormTimeline(null, null);
     document.getElementById('extra-info-section').style.display='none';
   }
 }
 
-function updateTierIndicator(t){
+function updateTierIndicator(t, sdr){
   const ind=document.getElementById('tier-ind');
   const nm=document.getElementById('tier-ind-name');
+  const txtEl=document.querySelector('.tier-indicator-text');
   const tm=document.getElementById('f-tm').value;
-  if(!t){ nm.textContent='—'; ind.style.borderColor='var(--border)'; return; }
+  if(!t){
+    if(nm) nm.textContent='—';
+    if(ind) ind.style.borderColor='var(--border)';
+    if(txtEl) txtEl.textContent='Add products and enter supply prices to see approval routing';
+    return;
+  }
   const approver=getApproverName(tm,t.tier);
   const colors={RSM:'#1E40AF',ZSM:'#5B21B6',NSM:'#9D174D','CM':'#78350F'};
-  ind.style.borderColor=colors[t.tier]||'var(--border)';
-  document.querySelector('.tier-indicator-text').textContent=`This request requires ${t.label} approval`;
-  nm.textContent=approver+' ('+t.label+')';
+  if(ind) ind.style.borderColor=colors[t.tier]||'var(--border)';
+  if(txtEl) txtEl.textContent='Highest SDR: '+sdr.toFixed(1)+'% — requires '+t.label+' approval';
+  if(nm) nm.textContent=approver+' ('+t.label+')';
 }
 
 function renderFormTimeline(disc,t){
   const tm=document.getElementById('f-tm').value;
   const h=HIER[tm]||{};
-  const stages=[
-    {role:"Territory Manager",name:tm,dot:"tl-done",stat:"Initiating"},
-  ];
+  const stages=[{role:"Territory Manager",name:tm,dot:"tl-done",stat:"Initiating"}];
   if(!t){
-    stages.push({role:"Approver (TBD)",name:"Enter price to determine",dot:"tl-pending",stat:"Awaiting"});
+    stages.push({role:"Approver (TBD)",name:"Enter prices to determine",dot:"tl-pending",stat:"Awaiting"});
   } else if(t.tier==='RSM'){
     stages.push({role:"RSM",name:h.rsm||'—',dot:"tl-active",stat:"Pending RSM Approval"});
   } else if(t.tier==='ZSM'){
@@ -1013,44 +1255,42 @@ function renderFormTimeline(disc,t){
     stages.push({role:"ZSM (Info)",name:h.zsm||'—',dot:"tl-done",stat:"For information"});
     stages.push({role:"NSM",name:h.nsm||'—',dot:"tl-active",stat:"Pending NSM Approval"});
   } else {
-    stages.push({role:"RSM → ZSM → NSM (Info)",name:"All for information",dot:"tl-done",stat:"For information"});
-    stages.push({role:"Country Manager",name:h.cm||'—',dot:"tl-active",stat:"Pending CM Approval — Additional info required"});
+    stages.push({role:"RSM \u2192 ZSM \u2192 NSM (Info)",name:"All for information",dot:"tl-done",stat:"For information"});
+    stages.push({role:"Country Manager",name:h.cm||'—',dot:"tl-active",stat:"Pending CM Approval"});
   }
-  document.getElementById('form-tl').innerHTML=stages.map(s=>`
-    <div class="tl-step">
-      <div class="tl-dot ${s.dot}">${s.dot==='tl-done'?'✓':s.dot==='tl-active'?'→':'·'}</div>
-      <div class="tl-body">
-        <div class="tl-role">${s.role}</div>
-        <div class="tl-name">${s.name}</div>
-        <div class="tl-stat" style="color:${s.dot==='tl-done'?'var(--green-m)':s.dot==='tl-active'?'var(--amber)':'var(--muted)'}">${s.stat}</div>
-      </div>
-    </div>`).join('');
+  const tlEl=document.getElementById('form-tl');
+  if(tlEl) tlEl.innerHTML=stages.map(s=>
+    '<div class="tl-step">'+
+    '<div class="tl-dot '+s.dot+'">'+(s.dot==='tl-done'?'✓':s.dot==='tl-active'?'→':'·')+'</div>'+
+    '<div class="tl-body">'+
+    '<div class="tl-role">'+s.role+'</div>'+
+    '<div class="tl-name">'+s.name+'</div>'+
+    '<div class="tl-stat" style="color:'+(s.dot==='tl-done'?'var(--green-m)':s.dot==='tl-active'?'var(--amber)':'var(--muted)')+'">'+s.stat+'</div>'+
+    '</div></div>').join('');
 }
 
 function submitRequest(){
   const tm=document.getElementById('f-tm').value;
   const cust=document.getElementById('f-customer').value.trim();
-  const prod=document.getElementById('f-product').value;
-  const req=parseFloat(document.getElementById('f-req').value);
-  const vol=parseInt(document.getElementById('f-vol').value);
+  const dealer=document.getElementById('f-dealer').value.trim();
   const just=document.getElementById('f-just').value.trim();
   const stage=document.getElementById('f-stage').value;
-  const dm=parseFloat(document.getElementById('f-dealer-margin').value);
 
-  if(!cust||!prod||!req||!vol||!just||isNaN(dm)){showToast('Please fill all required fields including Dealer Margin','e');return;}
+  if(!cust){showToast('Hospital / Account Name is required','e');return;}
+  if(!dealer){showToast('Dealer Name is required','e');return;}
+  if(!just){showToast('Remarks / Justification is required','e');return;}
+  if(skuRows.length===0){showToast('Add at least one product row','e');return;}
 
-  const dp=parseInt(document.getElementById('f-std').value.replace(/[₹,]/g,''));
-  // Formula 1: Coloplast Realisation = ROUND(Supply Price / (1 + Dealer Margin%), 0)
-  const realisation=Math.round(req/(1+dm/100));
-  // Formula 2: Expected Revenue = Qty × Coloplast Realisation
-  const expectedRevenue=vol*realisation;
-  // Formula 3: SDR% = (DP - Coloplast Realisation) / DP
-  const sdrPct=(dp-realisation)/dp*100;
-  const t=getTier(sdrPct);
+  const validRows=skuRows.filter(r=>r.sdr!==null);
+  if(validRows.length===0){showToast('Complete at least one product row (code, supply price, dealer margin, qty)','e');return;}
 
-  // extra info for >40%
+  const maxSdr=Math.max(...validRows.map(r=>r.sdr));
+  const totalRevenue=skuRows.reduce((s,r)=>s+(r.revenue||0),0);
+  const totalQty=skuRows.reduce((s,r)=>s+(parseInt(r.qty)||0),0);
+  const t=getTier(maxSdr);
+
   let extraInfo=null;
-  if(sdrPct>40){
+  if(maxSdr>40){
     const revLY=document.getElementById('f-rev-ly').value;
     const revTY=document.getElementById('f-rev-ty').value;
     const stratJ=document.getElementById('f-strat-just').value.trim();
@@ -1061,20 +1301,30 @@ function submitRequest(){
   }
 
   const id='SPA-'+String(requests.length+1).padStart(3,'0');
-  const h=HIER[tm]||{};
+  const skuLabel=validRows.length===1
+    ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
+    : validRows.length+' products';
 
   requests.unshift({
     id, date:new Date().toISOString().split('T')[0],
-    tm, customer:cust, product:prod, stdPrice:dp, reqPrice:req,
-    dealerMargin:dm, realisation, expectedRevenue, sdrPct,
-    volume:vol, compPrice:parseFloat(document.getElementById('f-comp').value)||null,
+    tm, customer:cust, dealer,
+    product:skuLabel,
+    skus:skuRows.filter(r=>r.code).map(r=>Object.assign({},r)),
+    stdPrice:validRows[0]?validRows[0].mrp:0,
+    reqPrice:validRows[0]?parseFloat(validRows[0].sp)||0:0,
+    dealerMargin:validRows[0]?parseFloat(validRows[0].dm)||0:0,
+    realisation:validRows[0]?validRows[0].realisation:0,
+    expectedRevenue:totalRevenue,
+    sdrPct:maxSdr,
+    volume:totalQty,
     justification:just, dealStage:stage,
     status:t.status, tier:t.tier,
     linkedTo:reraiseFrom||null, extraInfo,
+    npd:parseInt(document.getElementById('f-npd').value)||null,
   });
 
   reraiseFrom=null;
-  showToast(`${id} submitted — routed to ${t.label}`,'s');
+  showToast(id+' submitted — routed to '+t.label,'s');
   nav('requests',null);
 }
 
@@ -1172,21 +1422,57 @@ function openDetail(id){
   document.getElementById('det-title').innerHTML=
     `${r.id} — ${r.customer} ${r.linkedTo?`<span class="badge b-teal">Re-raised</span>`:''}`;
 
+  // Build SKU table HTML for multi-SKU requests
+  const skuTableHTML = (r.skus && r.skus.length>0) ?
+    '<div class="sec-div">Product Lines</div>'+
+    '<div style="overflow-x:auto;margin-bottom:16px;">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:800px;">'+
+    '<thead><tr style="background:var(--bg);border-bottom:2px solid var(--border);">'+
+    '<th style="padding:7px 6px;text-align:left;">#</th>'+
+    '<th style="padding:7px 6px;text-align:left;">Code</th>'+
+    '<th style="padding:7px 6px;text-align:left;">Description</th>'+
+    '<th style="padding:7px 6px;text-align:right;">MRP</th>'+
+    '<th style="padding:7px 6px;text-align:right;">DP</th>'+
+    '<th style="padding:7px 6px;text-align:right;">Qty</th>'+
+    '<th style="padding:7px 6px;text-align:right;">Supply Price</th>'+
+    '<th style="padding:7px 6px;text-align:right;">DM%</th>'+
+    '<th style="padding:7px 6px;text-align:right;">Realisation</th>'+
+    '<th style="padding:7px 6px;text-align:right;">SDR%</th>'+
+    '<th style="padding:7px 6px;text-align:right;">Revenue</th>'+
+    '</tr></thead><tbody>'+
+    r.skus.map((s,i)=>{
+      const sdrCls=s.sdr!==null?discClass(s.sdr):'';
+      return '<tr style="border-bottom:1px solid var(--border);">'+
+        '<td style="padding:6px;color:var(--muted);">'+(i+1)+'</td>'+
+        '<td style="padding:6px;font-family:monospace;font-size:10px;">'+s.code+'</td>'+
+        '<td style="padding:6px;font-size:10px;color:var(--text2);">'+s.desc+'</td>'+
+        '<td style="padding:6px;text-align:right;">'+INR(s.mrp)+'</td>'+
+        '<td style="padding:6px;text-align:right;">'+INR(s.dp)+'</td>'+
+        '<td style="padding:6px;text-align:right;">'+(s.qty||'—')+'</td>'+
+        '<td style="padding:6px;text-align:right;font-weight:600;">'+INR(parseFloat(s.sp)||0)+'</td>'+
+        '<td style="padding:6px;text-align:right;">'+(s.dm?s.dm+'%':'—')+'</td>'+
+        '<td style="padding:6px;text-align:right;font-weight:600;">'+INR(s.realisation)+'</td>'+
+        '<td style="padding:6px;text-align:right;"><span class="disc-pill '+sdrCls+'">'+(s.sdr!==null?s.sdr.toFixed(1)+'%':'—')+'</span></td>'+
+        '<td style="padding:6px;text-align:right;">'+INR(s.revenue)+'</td>'+
+      '</tr>';
+    }).join('')+
+    '</tbody></table></div>' : '';
+
+  const sdrVal = r.sdrPct!==undefined ? r.sdrPct : d;
+
   document.getElementById('det-body').innerHTML=`
     <div class="detail-grid">
-      <div class="dg-item"><div class="dg-label">Customer</div><div class="dg-val">${r.customer}</div></div>
-      <div class="dg-item"><div class="dg-label">Product</div><div class="dg-val">${r.product}</div></div>
+      <div class="dg-item"><div class="dg-label">Customer / Hospital</div><div class="dg-val">${r.customer}</div></div>
+      <div class="dg-item"><div class="dg-label">Dealer</div><div class="dg-val">${r.dealer||r.product||'—'}</div></div>
       <div class="dg-item"><div class="dg-label">Territory Manager</div><div class="dg-val">${r.tm}</div></div>
       <div class="dg-item"><div class="dg-label">Deal Stage</div><div class="dg-val">${stageBadge(r.dealStage)}</div></div>
-      <div class="dg-item"><div class="dg-label">Standard Price</div><div class="dg-val">${INR(r.stdPrice)}</div></div>
-      <div class="dg-item"><div class="dg-label">Requested Price</div><div class="dg-val"><strong>${INR(r.reqPrice)}</strong></div></div>
-      <div class="dg-item"><div class="dg-label">Discount</div><div class="dg-val"><strong style="color:${d>40?'var(--red)':d>30?'var(--purple)':d>15?'var(--amber)':'var(--green-m)'}">${d?d.toFixed(1)+'%':'—'}</strong></div></div>
+      <div class="dg-item"><div class="dg-label">SDR%</div><div class="dg-val"><strong class="disc-pill ${discClass(sdrVal)}" style="font-size:13px;">${sdrVal?sdrVal.toFixed(1)+'%':'—'}</strong></div></div>
       <div class="dg-item"><div class="dg-label">Approval Tier</div><div class="dg-val">${tierBadge(r.tier)}</div></div>
-      <div class="dg-item"><div class="dg-label">Volume</div><div class="dg-val">${r.volume} units</div></div>
-      <div class="dg-item"><div class="dg-label">Deal Value</div><div class="dg-val">${INR(r.reqPrice*r.volume)}</div></div>
-      <div class="dg-item"><div class="dg-label">Competitor Price</div><div class="dg-val">${INR(r.compPrice)}</div></div>
+      <div class="dg-item"><div class="dg-label">Total Volume</div><div class="dg-val">${r.volume} units</div></div>
+      <div class="dg-item"><div class="dg-label">Expected Revenue</div><div class="dg-val"><strong>${INR(r.expectedRevenue||r.reqPrice*r.volume)}</strong></div></div>
       <div class="dg-item"><div class="dg-label">Status</div><div class="dg-val">${statusBadge(r.status)}</div></div>
     </div>
+    ${skuTableHTML}
     <div class="sec-div">Justification</div>
     <div style="background:var(--bg);padding:10px 12px;border-radius:5px;font-size:12px;line-height:1.7;margin-bottom:16px;">${r.justification}</div>
     ${extraHTML}
