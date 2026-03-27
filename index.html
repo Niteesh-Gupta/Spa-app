@@ -1023,6 +1023,20 @@ function initForm(){
   skuRows = [];
   skuRowNextId = 1;
 
+  // Lock f-tm to the logged-in TM's name so submitted requests match the filter
+  if(_role === 'TM' && _name){
+    const sel = document.getElementById('f-tm');
+    // Try to select matching option; if not found, add it
+    let found = false;
+    for(let i=0; i<sel.options.length; i++){
+      if(sel.options[i].value === _name){ sel.selectedIndex = i; found = true; break; }
+    }
+    if(!found){ const opt = document.createElement('option'); opt.value = _name; opt.textContent = _name; sel.add(opt); sel.value = _name; }
+    sel.disabled = true;
+  } else {
+    document.getElementById('f-tm').disabled = false;
+  }
+
   if(reraiseFrom){
     const prev = requests.find(r=>r.id===reraiseFrom);
     document.getElementById('form-page-title').textContent='Re-raise Price Request';
@@ -1305,7 +1319,7 @@ function submitRequest(){
     ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
     : validRows.length+' products';
 
-  requests.unshift({
+  const newReq = {
     id, date:new Date().toISOString().split('T')[0],
     tm, customer:cust, dealer,
     product:skuLabel,
@@ -1321,35 +1335,60 @@ function submitRequest(){
     status:t.status, tier:t.tier,
     linkedTo:reraiseFrom||null, extraInfo,
     npd:parseInt(document.getElementById('f-npd').value)||null,
-  });
+  };
 
+  // Add to in-memory array immediately so TM sees it right away
+  requests.unshift(newReq);
+
+  const linkedFrom = reraiseFrom;
   reraiseFrom=null;
   showToast(id+' submitted — routed to '+t.label,'s');
   nav('requests',null);
+
+  // Persist to Supabase in background
+  fetch(API_BASE+'/api/requests', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+    body:JSON.stringify(newReq)
+  }).then(r=>{
+    if(!r.ok) console.warn('Failed to save request to DB:', r.status);
+  }).catch(e=>{ /* offline — in-memory copy stands */ });
 }
 
 // ══════════════════════════════════════════
 // ACTIONS
 // ══════════════════════════════════════════
-const STATUS_CHAIN={
-  "Pending RSM":"Pending ZSM","Pending ZSM":"Pending NSM",
-  "Pending NSM":"Pending CM","Pending CM":"Approved","Pending TM":"Pending RSM"
-};
-
-function advanceStatus(id){
+// Requests are routed directly to the correct approver's tier on submission,
+// so any approval by the current approver means final Approved.
+async function advanceStatus(id){
   const r=requests.find(x=>x.id===id);
   if(!r)return;
-  r.status=STATUS_CHAIN[r.status]||'Approved';
-  showToast(`${id} → ${r.status}`,'s');
-  renderDash();
+  r.status='Approved';
+  renderDash(); renderAll(); updateBadge();
+  showToast(id+' \u2192 Approved','s');
+  // Persist to DB (fire-and-forget; UI already updated)
+  try {
+    await fetch(API_BASE+'/api/requests/'+id, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({status:'Approved'})
+    });
+  } catch(e){ /* offline — in-memory update stands */ }
 }
 
-function rejectRequest(id){
+async function rejectRequest(id){
   const r=requests.find(x=>x.id===id);
   if(!r)return;
   r.status='Rejected';
-  showToast(`${id} rejected`,'e');
-  renderDash(); renderAll();
+  renderDash(); renderAll(); updateBadge();
+  showToast(id+' rejected','e');
+  try {
+    await fetch(API_BASE+'/api/requests/'+id, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({status:'Rejected'})
+    });
+  } catch(e){ /* offline — in-memory update stands */ }
 }
 
 function raiseAgain(id){
@@ -1603,6 +1642,25 @@ async function doLogin() {
   }
 }
 
+// ── LOAD REQUESTS FROM SUPABASE (via API) ──
+async function loadRequests() {
+  try {
+    const res = await fetch(API_BASE + '/api/requests', {
+      headers: { 'Authorization': 'Bearer ' + _token }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        requests = data;
+      }
+      // If empty array returned (table not yet seeded), keep demo data
+    }
+  } catch(e) {
+    // Network error — keep demo data
+  }
+  renderDash(); renderAll(); updateBadge();
+}
+
 // ── ENTER APP ──
 function enterApp() {
   if (!_role) return;
@@ -1627,7 +1685,7 @@ function enterApp() {
   existing.style.background = bannerColors[_role]||'#EFF6FF';
   existing.style.color       = textColors[_role]||'#1E40AF';
 
-  renderDash(); renderAll(); updateBadge(); applyRoleSidebar();
+  applyRoleSidebar();
 
   var q = getRoleQueueCount();
   existing.innerHTML =
@@ -1638,6 +1696,9 @@ function enterApp() {
       '</span>'+
       '<button onclick="logout()" style="background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.15);border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;color:inherit;">Sign Out</button>'+
     '</span>';
+
+  // Fetch real request data from Supabase (updates stats + tables)
+  loadRequests();
 }
 
 // ── LOGOUT ──
