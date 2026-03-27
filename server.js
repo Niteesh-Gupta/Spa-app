@@ -39,5 +39,9 @@ app.post('/api/login', async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email, region: user.region } });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`SPA API listening on http://localhost:${PORT}`));
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`SPA API listening on http://localhost:${PORT}`));
+}
+
+module.exports = app;
