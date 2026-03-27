@@ -567,7 +567,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
-    <button class="btn btn-ghost" onclick="runPreAnalysis()">🤖 AI Pre-Analysis</button>
+    <!-- AI Pre-Analysis removed -->
     <button class="btn btn-navy" onclick="submitRequest()">Submit Request →</button>
     <button class="btn btn-ghost" onclick="nav('requests',null)">Cancel</button>
   </div>
@@ -596,16 +596,11 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
     <div class="ai-out" id="ai-chat-out">Ask me anything — approval strategy, risk assessment, justification drafts, pipeline analysis...</div>
   </div>
   <div style="display:flex;gap:8px;margin-top:10px;">
-    <input class="inp" id="ai-inp" placeholder="e.g. Should SPA-003 be approved? What's the risk?" style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()">
-    <button class="btn btn-accent" onclick="sendChat()">Ask →</button>
   </div>
   <div style="margin-top:14px;background:#fff;border:1px solid var(--border2);border-radius:var(--r);padding:14px 18px;">
     <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Claude API Key</div>
     <div style="display:flex;gap:8px;">
-      <input class="inp" id="api-key" type="password" placeholder="sk-ant-api03-..." style="flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;">
-      <button class="btn btn-ghost btn-sm" onclick="saveKey()">Save</button>
     </div>
-    <div style="font-size:10px;color:var(--muted);margin-top:5px;">Session only — not stored anywhere. Get at console.anthropic.com ($5 free credit)</div>
   </div>
 </div>
 
@@ -1246,57 +1241,6 @@ function buildTimeline(r,h){
 
 function closeModal(){
   document.getElementById('det-overlay').classList.remove('open');
-}
-
-// ══════════════════════════════════════════
-// AI
-// ══════════════════════════════════════════
-async function callClaude(prompt,outId){
-  const key=apiKey||document.getElementById('api-key').value;
-  const out=document.getElementById(outId);
-  if(!key){out.innerHTML='<span style="color:rgba(255,255,255,.5);">⚠ Add Claude API key in the AI Advisor tab first.</span>';return;}
-  out.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Thinking...';
-  try{
-    const context=`You are a Special Price Approval advisor for a B2B manufacturing components company in India.\n\nCurrent requests:\n${requests.map(r=>{const d=DISC(r.stdPrice,r.reqPrice);return `${r.id}: ${r.customer} | ${r.product} | Std:₹${r.stdPrice} Req:₹${r.reqPrice} | Disc:${d?d.toFixed(1)+'%':'?'} | Tier:${r.tier} | Stage:${r.dealStage} | Status:${r.status}${r.linkedTo?' | Re-raised from:'+r.linkedTo:''}`}).join('\n')}\n\nApproval tiers: <15% RSM, 15-30% ZSM, 30-40% NSM, >40% Country Manager (with account revenue data required).\nUse ₹ for currency. Be concise and direct.`;
-    const resp=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,system:context,messages:[{role:"user",content:prompt}]})
-    });
-    const data=await resp.json();
-    if(data.error){out.textContent="Error: "+data.error.message;return;}
-    out.textContent=data.content[0].text;
-  }catch(e){out.textContent="Error: "+e.message;}
-}
-
-async function runPreAnalysis(){
-  const prod=document.getElementById('f-product').value;
-  const req=document.getElementById('f-req').value;
-  const std=document.getElementById('f-std').value.replace(/[₹,]/g,'');
-  const just=document.getElementById('f-just').value;
-  const cust=document.getElementById('f-customer').value;
-  const vol=document.getElementById('f-vol').value;
-  const comp=document.getElementById('f-comp').value;
-  if(!prod||!req){showToast('Fill product and price first','e');return;}
-  const d=std&&req?((std-req)/std*100).toFixed(1):null;
-  const panel=document.getElementById('ai-pre-panel');
-  panel.style.display='block';
-  const prompt=`Pre-submission analysis for:\nCustomer: ${cust||'TBD'}\nProduct: ${prod}\nStd Price: ₹${std}\nRequested: ₹${req}\nDiscount: ${d}%\nVolume: ${vol||'?'} units\nCompetitor: ${comp?'₹'+comp:'not provided'}\nJustification: ${just||'not filled'}\n\n1. RECOMMENDATION: Approve/Conditional/Reject\n2. RISK: Low/Medium/High\n3. APPROVER: Who will need to approve based on ${d}% discount?\n4. Key points for approver (2-3 bullets)\n5. Suggested improvement to justification if any`;
-  await callClaude(prompt,'ai-pre-out');
-}
-
-function aiQ(q){document.getElementById('ai-inp').value=q;sendChat();}
-
-async function sendChat(){
-  const q=document.getElementById('ai-inp').value.trim();
-  if(!q)return;
-  document.getElementById('ai-inp').value='';
-  await callClaude(q,'ai-chat-out');
-}
-
-function saveKey(){
-  apiKey=document.getElementById('api-key').value;
-  if(apiKey)showToast('API key saved for this session ✓','s');
 }
 
 // ══════════════════════════════════════════
