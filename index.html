@@ -456,7 +456,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
           </select>
         </div>
         <div class="fg">
-          <label class="lbl">Standard Price (₹)</label>
+          <label class="lbl">DP — Dealer Price (₹)</label>
           <input class="inp" id="f-std" readonly>
         </div>
         <div class="fg">
@@ -464,16 +464,28 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
           <input class="inp" id="f-floor" readonly>
         </div>
         <div class="fg">
-          <label class="lbl">Requested Price (₹)</label>
-          <input class="inp" id="f-req" type="number" placeholder="Enter price" oninput="onPriceChange()">
+          <label class="lbl">Supply Price (₹)</label>
+          <input class="inp" id="f-req" type="number" placeholder="Price charged to customer" oninput="onCalcChange()">
         </div>
         <div class="fg">
-          <label class="lbl">Discount %</label>
+          <label class="lbl">Dealer Margin (%)</label>
+          <input class="inp" id="f-dealer-margin" type="number" placeholder="e.g. 15" oninput="onCalcChange()">
+        </div>
+        <div class="fg">
+          <label class="lbl">Coloplast Realisation (₹)</label>
+          <input class="inp" id="f-realisation" readonly placeholder="—">
+        </div>
+        <div class="fg">
+          <label class="lbl">SDR %</label>
           <div class="disc-pill" id="f-disc">—</div>
         </div>
         <div class="fg">
           <label class="lbl">Deal Volume (Units)</label>
-          <input class="inp" id="f-vol" type="number" placeholder="e.g. 500">
+          <input class="inp" id="f-vol" type="number" placeholder="e.g. 500" oninput="onCalcChange()">
+        </div>
+        <div class="fg">
+          <label class="lbl">Expected Revenue (₹)</label>
+          <input class="inp" id="f-revenue" readonly placeholder="—">
         </div>
         <div class="fg">
           <label class="lbl">Competitor Ref Price (₹)</label>
@@ -827,7 +839,7 @@ function renderDash(){
   document.getElementById('dash-tbody').innerHTML = dashList.length===0
     ? `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">✅ No pending items for your role right now.</td></tr>`
     : dashList.map(r=>{
-    const d=DISC(r.stdPrice,r.reqPrice);
+    const d=r.sdrPct!==undefined ? r.sdrPct : DISC(r.stdPrice,r.reqPrice);
     return `<tr>
       <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}${r.linkedTo?` <span class="badge b-teal" title="Re-raised from ${r.linkedTo}">↑</span>`:''}</strong></td>
       <td>${r.date}</td><td>${r.tm}</td><td>${r.customer}</td><td>${r.product}</td>
@@ -870,14 +882,14 @@ function renderAll(){
   document.getElementById('all-tbody').innerHTML=list.length===0
     ? `<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">No requests found for your current filters.</td></tr>`
     : list.map(r=>{
-    const d=DISC(r.stdPrice,r.reqPrice);
+    const d=r.sdrPct!==undefined ? r.sdrPct : DISC(r.stdPrice,r.reqPrice);
     return `<tr>
       <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}</strong>${r.linkedTo?`<br><span style="font-size:9px;color:var(--teal);">↑ ${r.linkedTo}</span>`:''}</td>
       <td>${r.date}</td><td>${r.tm}</td>
       <td>${r.customer}</td><td>${r.product}</td>
       <td>${INR(r.stdPrice)}</td><td>${INR(r.reqPrice)}</td>
       <td><strong>${d?d.toFixed(1)+'%':'—'}</strong></td>
-      <td>${INR(r.reqPrice*r.volume)}</td>
+      <td>${INR(r.expectedRevenue||r.reqPrice*r.volume)}</td>
       <td>${tierBadge(r.tier)}</td>
       <td>${stageBadge(r.dealStage)}</td>
       <td>${statusBadge(r.status)}</td>
@@ -901,7 +913,7 @@ function initForm(){
     notice.style.display='block';
     document.getElementById('reraise-notice-body').innerHTML=
       `<strong>Previous Request:</strong> ${reraiseFrom} | ${prev.customer} | ${prev.product}<br>
-       <strong>Previous Price:</strong> ${INR(prev.reqPrice)} (${DISC_FMT(prev.stdPrice,prev.reqPrice)} disc)<br>
+       <strong>Previous Supply Price:</strong> ${INR(prev.reqPrice)} &nbsp;·&nbsp; <strong>SDR:</strong> ${prev.sdrPct!==undefined ? prev.sdrPct.toFixed(1)+'%' : DISC_FMT(prev.stdPrice,prev.reqPrice)}<br>
        <strong>Rejection reason carried forward — please revise pricing and justification.</strong>`;
     // Pre-fill
     setTimeout(()=>{
@@ -913,10 +925,10 @@ function initForm(){
     },50);
   } else {
     document.getElementById('form-page-title').textContent='New Price Approval Request';
-    document.getElementById('form-page-sub').textContent='Submit for multi-level approval based on discount threshold';
+    document.getElementById('form-page-sub').textContent='Submit for multi-level approval based on SDR%';
     document.getElementById('reraise-notice').style.display='none';
     // reset
-    ['f-customer','f-req','f-vol','f-comp','f-just'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['f-customer','f-req','f-vol','f-comp','f-just','f-dealer-margin','f-realisation','f-revenue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('f-product').value='';
     document.getElementById('f-std').value='';
     document.getElementById('f-floor').value='';
@@ -937,25 +949,36 @@ function onProductChange(){
   const p=opt.dataset.p,fl=opt.dataset.fl;
   document.getElementById('f-std').value=p?INR(parseInt(p)):'';
   document.getElementById('f-floor').value=fl?INR(parseInt(fl)):'';
-  onPriceChange();
+  onCalcChange();
 }
 
-function onPriceChange(){
-  const stdRaw=document.getElementById('f-std').value.replace(/[₹,]/g,'');
-  const std=parseFloat(stdRaw),req=parseFloat(document.getElementById('f-req').value);
-  const el=document.getElementById('f-disc');
-  if(std&&req&&req<std){
-    const d=((std-req)/std*100);
-    el.textContent=d.toFixed(1)+'%';
-    el.className='disc-pill '+discClass(d);
-    const t=getTier(d);
+function onCalcChange(){
+  const dp  = parseFloat(document.getElementById('f-std').value.replace(/[₹,]/g,''));
+  const sp  = parseFloat(document.getElementById('f-req').value);
+  const dm  = parseFloat(document.getElementById('f-dealer-margin').value);
+  const qty = parseInt(document.getElementById('f-vol').value);
+  const el  = document.getElementById('f-disc');
+
+  if(dp && sp && !isNaN(dm) && dm >= 0){
+    // Formula 1: Coloplast Realisation = ROUND(Supply Price / (1 + Dealer Margin%), 0)
+    const realisation = Math.round(sp / (1 + dm / 100));
+    document.getElementById('f-realisation').value = INR(realisation);
+    // Formula 2: Expected Revenue = Qty × Coloplast Realisation
+    document.getElementById('f-revenue').value = (qty && !isNaN(qty)) ? INR(qty * realisation) : '—';
+    // Formula 3: SDR% = (DP - Coloplast Realisation) / DP
+    const sdr = (dp - realisation) / dp * 100;
+    el.textContent = sdr.toFixed(1)+'%';
+    el.className = 'disc-pill '+discClass(sdr);
+    const t = getTier(sdr);
     updateTierIndicator(t);
-    renderFormTimeline(d,t);
-    document.getElementById('extra-info-section').style.display=d>40?'block':'none';
+    renderFormTimeline(sdr, t);
+    document.getElementById('extra-info-section').style.display = sdr > 40 ? 'block' : 'none';
   } else {
+    document.getElementById('f-realisation').value = '';
+    document.getElementById('f-revenue').value = '';
     el.textContent='—'; el.className='disc-pill';
     updateTierIndicator(null);
-    renderFormTimeline(null,null);
+    renderFormTimeline(null, null);
     document.getElementById('extra-info-section').style.display='none';
   }
 }
@@ -1012,20 +1035,26 @@ function submitRequest(){
   const vol=parseInt(document.getElementById('f-vol').value);
   const just=document.getElementById('f-just').value.trim();
   const stage=document.getElementById('f-stage').value;
+  const dm=parseFloat(document.getElementById('f-dealer-margin').value);
 
-  if(!cust||!prod||!req||!vol||!just){showToast('Please fill all required fields','e');return;}
+  if(!cust||!prod||!req||!vol||!just||isNaN(dm)){showToast('Please fill all required fields including Dealer Margin','e');return;}
 
-  const std=parseInt(document.getElementById('f-std').value.replace(/[₹,]/g,''));
-  const d=((std-req)/std*100);
-  const t=getTier(d);
+  const dp=parseInt(document.getElementById('f-std').value.replace(/[₹,]/g,''));
+  // Formula 1: Coloplast Realisation = ROUND(Supply Price / (1 + Dealer Margin%), 0)
+  const realisation=Math.round(req/(1+dm/100));
+  // Formula 2: Expected Revenue = Qty × Coloplast Realisation
+  const expectedRevenue=vol*realisation;
+  // Formula 3: SDR% = (DP - Coloplast Realisation) / DP
+  const sdrPct=(dp-realisation)/dp*100;
+  const t=getTier(sdrPct);
 
   // extra info for >40%
   let extraInfo=null;
-  if(d>40){
+  if(sdrPct>40){
     const revLY=document.getElementById('f-rev-ly').value;
     const revTY=document.getElementById('f-rev-ty').value;
     const stratJ=document.getElementById('f-strat-just').value.trim();
-    if(!revLY||!revTY||!stratJ){showToast('Additional info required for CM approval (>40%)','e');return;}
+    if(!revLY||!revTY||!stratJ){showToast('Additional info required for CM approval (SDR >40%)','e');return;}
     extraInfo={revLY:parseFloat(revLY),revTY:parseFloat(revTY),
       relSince:parseInt(document.getElementById('f-rel-since').value)||null,
       acctClass:document.getElementById('f-acct-class').value,stratJust:stratJ};
@@ -1036,7 +1065,8 @@ function submitRequest(){
 
   requests.unshift({
     id, date:new Date().toISOString().split('T')[0],
-    tm, customer:cust, product:prod, stdPrice:std, reqPrice:req,
+    tm, customer:cust, product:prod, stdPrice:dp, reqPrice:req,
+    dealerMargin:dm, realisation, expectedRevenue, sdrPct,
     volume:vol, compPrice:parseFloat(document.getElementById('f-comp').value)||null,
     justification:just, dealStage:stage,
     status:t.status, tier:t.tier,
