@@ -270,48 +270,36 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="login-screen" style="position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0F2544,#1E3A5F);display:flex;align-items:center;justify-content:center;flex-direction:column;">
-  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:44px;width:460px;max-width:95vw;box-shadow:0 32px 80px rgba(0,0,0,.4);">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:44px;width:420px;max-width:95vw;box-shadow:0 32px 80px rgba(0,0,0,.4);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px;">
       <div style="width:10px;height:10px;border-radius:50%;background:#E07B1F;box-shadow:0 0 12px #E07B1F;"></div>
-      <div><div style="font-size:15px;font-weight:800;color:#fff;font-family:Plus Jakarta Sans,sans-serif;">Special Price Approval System</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.4);">Enterprise Edition · v3.0</div></div>
-    </div>
-    <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;font-family:Plus Jakarta Sans,sans-serif;">Select Your Role</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:24px;">Each role sees its own personalised dashboard and queue.</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-      <div onclick="loginAs(this,'TM','Arjun Mehta','Territory Manager')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'"  data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">👤</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">Territory Manager</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Submit & track requests</div>
-      </div>
-      <div onclick="loginAs(this,'RSM','Ravi Sharma','Regional Sales Manager')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'" data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">📋</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">RSM</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Approve &lt;15% discount</div>
-      </div>
-      <div onclick="loginAs(this,'ZSM','Vikram Singh','Zonal Sales Manager')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'" data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">🗺</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">ZSM</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Approve 15–30% discount</div>
-      </div>
-      <div onclick="loginAs(this,'NSM','Priya Nair','National Sales Manager')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'" data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">🏢</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">NSM</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Approve 30–40% discount</div>
-      </div>
-      <div onclick="loginAs(this,'CM','Rajiv Mehrotra','Country Manager')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'" data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">🌐</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">Country Manager</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Approve &gt;40% discount</div>
-      </div>
-      <div onclick="loginAs(this,'SC','Logistics Team','Supply Chain')" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background=this.dataset.sel=='1'?'rgba(232,160,32,.15)':'rgba(255,255,255,.06)'" data-sel="0">
-        <div style="font-size:18px;margin-bottom:4px;">⚙️</div>
-        <div style="font-size:12px;font-weight:700;color:#fff;">Supply Chain</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);">Feasibility & fulfilment</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#fff;font-family:Plus Jakarta Sans,sans-serif;">Special Price Approval System</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);">Coloplast India · Enterprise Edition</div>
       </div>
     </div>
-    <button id="enter-btn" onclick="enterApp()" disabled style="width:100%;background:#E07B1F;color:#fff;border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;opacity:.4;font-family:inherit;">Select a role to continue →</button>
-    <div style="font-size:10px;color:rgba(255,255,255,.2);text-align:center;margin-top:12px;">Demo mode — sample data only</div>
+    <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;font-family:Plus Jakarta Sans,sans-serif;">Sign In</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:24px;">Use your Coloplast credentials to continue.</div>
+
+    <div id="login-error" style="display:none;background:rgba(192,57,43,.25);border:1px solid rgba(192,57,43,.5);border-radius:6px;padding:10px 14px;font-size:12px;color:#FCA5A5;margin-bottom:16px;"></div>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:6px;letter-spacing:.04em;">EMAIL</label>
+      <input id="login-email" type="email" placeholder="you@coloplast.com" autocomplete="username"
+        style="width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:11px 14px;font-size:13px;color:#fff;font-family:inherit;outline:none;"
+        onfocus="this.style.borderColor='#E07B1F'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+    </div>
+    <div style="margin-bottom:22px;">
+      <label style="display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:6px;letter-spacing:.04em;">PASSWORD</label>
+      <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:11px 14px;font-size:13px;color:#fff;font-family:inherit;outline:none;"
+        onfocus="this.style.borderColor='#E07B1F'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button id="login-btn" onclick="doLogin()" style="width:100%;background:#E07B1F;color:#fff;border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .15s;">Sign In →</button>
+    <div style="font-size:10px;color:rgba(255,255,255,.2);text-align:center;margin-top:14px;">Secured with JWT · Coloplast India</div>
   </div>
 </div>
 
@@ -680,7 +668,8 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 
 <script>
 // ── GLOBAL ROLE STATE — declared here so both script blocks can access ──
-var _role = null, _name = null;
+var _role = null, _name = null, _token = null;
+const API_BASE = 'https://spa-app-orpin.vercel.app';
 
 // ══════════════════════════════════════════
 // DATA
@@ -1253,95 +1242,131 @@ renderFormTimeline(null,null);
 </script>
 
 <script>
-// ── LOGIN SELECTION ──
-function loginAs(el, role, name, label) {
-  _role = role; _name = name;
-  document.querySelectorAll('[data-sel]').forEach(function(b){
-    b.dataset.sel='0';
-    b.style.background='rgba(255,255,255,.06)';
-    b.style.borderColor='rgba(255,255,255,.1)';
-  });
-  el.dataset.sel='1';
-  el.style.background='rgba(232,160,32,.15)';
-  el.style.borderColor='#E07B1F';
-  var btn=document.getElementById('enter-btn');
-  btn.disabled=false; btn.style.opacity='1';
-  btn.textContent='Enter as '+label+' →';
+// ── LOGIN — calls real API ──
+async function doLogin() {
+  var email    = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  var errEl    = document.getElementById('login-error');
+  var btn      = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  if (!email || !password) {
+    errEl.textContent = 'Email and password are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.style.opacity = '0.6'; btn.textContent = 'Signing in…';
+
+  try {
+    var res  = await fetch(API_BASE + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Login failed. Check your credentials.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    _token = data.token;
+    _role  = data.user.role;
+    _name  = data.user.name;
+    localStorage.setItem('spa_token', _token);
+    localStorage.setItem('spa_user',  JSON.stringify(data.user));
+    enterApp();
+
+  } catch (e) {
+    errEl.textContent = 'Network error — could not reach server.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Sign In →';
+  }
 }
 
 // ── ENTER APP ──
 function enterApp() {
-  if(!_role) return;
-  document.getElementById('login-screen').style.display='none';
+  if (!_role) return;
+  document.getElementById('login-screen').style.display = 'none';
 
-  // topbar avatar + name
-  var av=document.getElementById('topbar-avatar');
-  var avColors={TM:'#2563EB',RSM:'#7C3AED',ZSM:'#DB2777',NSM:'#059669',CM:'#D97706',SC:'#0891B2'};
-  if(av){ av.textContent=_role==='CM'?'CM':_role.substring(0,2); av.style.background=avColors[_role]||'#64748B'; }
-  var un=document.getElementById('topbar-user');
-  if(un) un.textContent=_name+' — '+_role;
+  var av = document.getElementById('topbar-avatar');
+  var avColors = {TM:'#2563EB',RSM:'#7C3AED',ZSM:'#DB2777',NSM:'#059669',CM:'#D97706',SC:'#0891B2'};
+  if (av) { av.textContent = _role==='CM' ? 'CM' : _role.substring(0,2); av.style.background = avColors[_role]||'#64748B'; }
+  var un = document.getElementById('topbar-user');
+  if (un) un.textContent = _name + ' — ' + _role;
 
-  // role banner
-  var bannerColors={TM:'#EFF6FF',RSM:'#F5F3FF',ZSM:'#FDF2F8',NSM:'#F0FDF4',CM:'#FFFBEB',SC:'#ECFEFF'};
-  var textColors  ={TM:'#1E40AF',RSM:'#5B21B6',ZSM:'#9D174D',NSM:'#14532D',CM:'#78350F',SC:'#164E63'};
-  var existing=document.getElementById('role-banner-bar');
-  if(!existing){
-    var bar=document.createElement('div');
-    bar.id='role-banner-bar';
-    bar.style.cssText='padding:8px 28px;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E2E8F0;';
-    document.querySelector('.topbar').insertAdjacentElement('afterend',bar);
-    existing=bar;
+  var bannerColors = {TM:'#EFF6FF',RSM:'#F5F3FF',ZSM:'#FDF2F8',NSM:'#F0FDF4',CM:'#FFFBEB',SC:'#ECFEFF'};
+  var textColors   = {TM:'#1E40AF',RSM:'#5B21B6',ZSM:'#9D174D',NSM:'#14532D',CM:'#78350F',SC:'#164E63'};
+  var existing = document.getElementById('role-banner-bar');
+  if (!existing) {
+    var bar = document.createElement('div');
+    bar.id = 'role-banner-bar';
+    bar.style.cssText = 'padding:8px 28px;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E2E8F0;';
+    document.querySelector('.topbar').insertAdjacentElement('afterend', bar);
+    existing = bar;
   }
-  existing.style.background=bannerColors[_role]||'#EFF6FF';
-  existing.style.color=textColors[_role]||'#1E40AF';
+  existing.style.background = bannerColors[_role]||'#EFF6FF';
+  existing.style.color       = textColors[_role]||'#1E40AF';
 
-  // re-render with role filter applied FIRST, then update banner count
-  renderDash();
-  renderAll();
-  updateBadge();
+  renderDash(); renderAll(); updateBadge();
 
-  var q=getRoleQueueCount();
-  existing.innerHTML=
-    '<span><strong>'+_role+' View</strong> &nbsp;·&nbsp; Logged in as '+_name+'</span>'+
+  var q = getRoleQueueCount();
+  existing.innerHTML =
+    '<span><strong>'+_role+' View</strong> &nbsp;·&nbsp; '+_name+'</span>'+
     '<span style="display:flex;align-items:center;gap:12px;">'+
       '<span style="background:rgba(0,0,0,.1);padding:2px 10px;border-radius:10px;font-size:10px;">'+
         q+' item'+(q!==1?'s':'')+' pending your action'+
       '</span>'+
-      '<button onclick="switchRole()" style="background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.15);border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;color:inherit;">← Switch Role</button>'+
+      '<button onclick="logout()" style="background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.15);border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;color:inherit;">Sign Out</button>'+
     '</span>';
 }
 
-// ── SWITCH ROLE ──
-function switchRole() {
-  _role=null; _name=null;
-  document.getElementById('login-screen').style.display='flex';
-  document.querySelectorAll('[data-sel]').forEach(function(b){
-    b.dataset.sel='0';
-    b.style.background='rgba(255,255,255,.06)';
-    b.style.borderColor='rgba(255,255,255,.1)';
-  });
-  var btn=document.getElementById('enter-btn');
-  btn.disabled=true; btn.style.opacity='0.4';
-  btn.textContent='Select a role to continue →';
+// ── LOGOUT ──
+function logout() {
+  _role = null; _name = null; _token = null;
+  localStorage.removeItem('spa_token');
+  localStorage.removeItem('spa_user');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value    = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').style.display = 'none';
 }
+
+// ── AUTO-RESTORE session from localStorage ──
+(function() {
+  var stored = localStorage.getItem('spa_user');
+  var tok    = localStorage.getItem('spa_token');
+  if (stored && tok) {
+    try {
+      var u = JSON.parse(stored);
+      _token = tok; _role = u.role; _name = u.name;
+      enterApp();
+    } catch(e) {
+      localStorage.removeItem('spa_token');
+      localStorage.removeItem('spa_user');
+    }
+  }
+})();
 
 // ── ROLE QUEUE COUNT (live) ──
 function getRoleQueueCount() {
-  if(!_role) return 0;
-  if(_role==='TM')  return requests.filter(r=>r.status.startsWith('Pending')&&r.tm===_name).length;
-  if(_role==='RSM') return requests.filter(r=>r.status==='Pending RSM').length;
-  if(_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM').length;
-  if(_role==='NSM') return requests.filter(r=>r.status==='Pending NSM').length;
-  if(_role==='CM')  return requests.filter(r=>r.status==='Pending CM').length;
-  if(_role==='SC')  return requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed').length;
+  if (!_role) return 0;
+  if (_role==='TM')  return requests.filter(r=>r.status.startsWith('Pending')&&r.tm===_name).length;
+  if (_role==='RSM') return requests.filter(r=>r.status==='Pending RSM').length;
+  if (_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM').length;
+  if (_role==='NSM') return requests.filter(r=>r.status==='Pending NSM').length;
+  if (_role==='CM')  return requests.filter(r=>r.status==='Pending CM').length;
+  if (_role==='SC')  return requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed').length;
   return 0;
 }
 
 // ── ROLE-AWARE SIDEBAR NAV ──
-// Hide New Request for non-TM roles
 function applyRoleSidebar() {
   var newReqNav = document.querySelector('.nav-item[onclick*="newreq"]');
-  if(newReqNav) newReqNav.style.display = (_role==='TM'||!_role) ? 'flex' : 'none';
+  if (newReqNav) newReqNav.style.display = (_role==='TM'||!_role) ? 'flex' : 'none';
 }
 </script>
 
