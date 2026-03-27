@@ -349,7 +349,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
       <div class="ph-title">Dashboard</div>
       <div class="ph-sub">Special price approval overview — all stages</div>
     </div>
-    <button class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
+    <button id="btn-newreq-dash" class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
   </div>
 
   <div class="kpi-row">
@@ -373,7 +373,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 <div class="page" id="page-requests">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">All Requests</div><div class="ph-sub">Complete register with history chains</div></div>
-    <button class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
+    <button id="btn-newreq-list" class="btn btn-navy" onclick="nav('newreq',null)">+ New Request</button>
   </div>
   <div class="filters">
     <input class="filter-inp" id="srch" placeholder="🔍  Customer / Product..." oninput="renderAll()">
@@ -1311,7 +1311,7 @@ function enterApp() {
   existing.style.background = bannerColors[_role]||'#EFF6FF';
   existing.style.color       = textColors[_role]||'#1E40AF';
 
-  renderDash(); renderAll(); updateBadge();
+  renderDash(); renderAll(); updateBadge(); applyRoleSidebar();
 
   var q = getRoleQueueCount();
   existing.innerHTML =
@@ -1365,8 +1365,14 @@ function getRoleQueueCount() {
 
 // ── ROLE-AWARE SIDEBAR NAV ──
 function applyRoleSidebar() {
-  var newReqNav = document.querySelector('.nav-item[onclick*="newreq"]');
-  if (newReqNav) newReqNav.style.display = (_role==='TM'||!_role) ? 'flex' : 'none';
+  var canCreate = (_role==='TM' || _role==='RSM');
+  var show = canCreate ? '' : 'none';
+  var navItem = document.querySelector('.nav-item[onclick*="newreq"]');
+  if (navItem) navItem.style.display = canCreate ? 'flex' : 'none';
+  var dashBtn = document.getElementById('btn-newreq-dash');
+  if (dashBtn) dashBtn.style.display = show;
+  var listBtn = document.getElementById('btn-newreq-list');
+  if (listBtn) listBtn.style.display = show;
 }
 </script>
 
