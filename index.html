@@ -817,9 +817,9 @@ const PRODUCT_MAP = {};
 PRODUCT_CATALOG.forEach(p => { PRODUCT_MAP[p.code] = p; });
 
 function getTier(d){
-  if(d<15)  return {tier:"RSM",   label:"RSM",             cls:"tier-rsm",  status:"Pending RSM"};
-  if(d<30)  return {tier:"ZSM",   label:"ZSM",             cls:"tier-zsm",  status:"Pending ZSM"};
-  if(d<=40) return {tier:"NSM",   label:"NSM",             cls:"tier-nsm",  status:"Pending NSM"};
+  if(d<=15) return {tier:"RSM",   label:"RSM",             cls:"tier-rsm",  status:"Pending RSM"};
+  if(d<=25) return {tier:"ZSM",   label:"ZSM",             cls:"tier-zsm",  status:"Pending ZSM"};
+  if(d<=35) return {tier:"NSM",   label:"NSM",             cls:"tier-nsm",  status:"Pending NSM"};
   return           {tier:"CM",    label:"Country Manager", cls:"tier-cm",   status:"Pending CM"};
 }
 function getApproverName(tm,tier){
@@ -1365,20 +1365,24 @@ function submitRequest(){
 // ══════════════════════════════════════════
 // ACTIONS
 // ══════════════════════════════════════════
-// Requests are routed directly to the correct approver's tier on submission,
-// so any approval by the current approver means final Approved.
 async function advanceStatus(id){
   const r=requests.find(x=>x.id===id);
   if(!r)return;
-  r.status='Approved';
+  const CHAIN=['RSM','ZSM','NSM','CM'];
+  const finalTier=getTier(r.sdrPct).tier;
+  const currentTier=r.status.replace('Pending ','');
+  const currentIdx=CHAIN.indexOf(currentTier);
+  const finalIdx=CHAIN.indexOf(finalTier);
+  const newStatus=(currentIdx>=finalIdx)?'Approved':'Pending '+CHAIN[currentIdx+1];
+  r.status=newStatus;
   renderDash(); renderAll(); updateBadge();
-  showToast(id+' \u2192 Approved','s');
+  showToast(id+' \u2192 '+newStatus,'s');
   // Persist to DB (fire-and-forget; UI already updated)
   try {
     await fetch(API_BASE+'/api/requests/'+id, {
       method:'PATCH',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
-      body:JSON.stringify({status:'Approved'})
+      body:JSON.stringify({status:newStatus})
     });
   } catch(e){ /* offline — in-memory update stands */ }
 }
