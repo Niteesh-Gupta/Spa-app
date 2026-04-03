@@ -429,14 +429,14 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
         </div>
         <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div>
-            <label class="lbl">Sales Region</label>
+            <label class="lbl">Zone</label>
             <select class="sel" id="f-region-sel">
               <option value="">— select —</option>
               <option>North</option><option>South</option><option>East</option><option>West</option>
             </select>
           </div>
           <div>
-            <label class="lbl">Zone</label>
+            <label class="lbl">Region</label>
             <input class="inp" id="f-zone" placeholder="e.g. Delhi NCR">
           </div>
         </div>
@@ -684,6 +684,7 @@ const HIER = {
   "Deepak Joshi": {rsm:"Kavya Reddy",  zsm:"Suresh Iyer",  nsm:"Anand Kumar", cm:"Rajiv Mehrotra", region:"South"},
   "Meena Pillai": {rsm:"Ravi Sharma",  zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
   "Rahul Desai":  {rsm:"Vikram Patel", zsm:"Vikram Singh", nsm:"Priya Nair",  cm:"Rajiv Mehrotra", region:"West"},
+  "Amit Sharma":  {rsm:"Priya Mehta",  zsm:"Renjith R",    nsm:"Rajib Chakraborty", zone:"South",  region:"Karnataka"},
 };
 const PRODUCT_CATALOG = [
   {code:"1268001664", desc:"Alterna 1PC OPEN MX TR 10/80MM", mrp:431, dp:317},
@@ -1081,8 +1082,8 @@ function initForm(){
 function onTMChange(){
   const tm = document.getElementById('f-tm').value;
   const h = HIER[tm]||{};
-  document.getElementById('f-region-sel').value = h.region||'';
-  document.getElementById('f-zone').value = h.zone||'';
+  document.getElementById('f-region-sel').value = h.zone||'';
+  document.getElementById('f-zone').value = h.region||'';
   renderFormTimeline(null, null);
 }
 
@@ -1330,8 +1331,8 @@ function submitRequest(){
     ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
     : validRows.length+' products';
 
-  const region = document.getElementById('f-region-sel').value;
-  const zone   = document.getElementById('f-zone').value;
+  const zone   = document.getElementById('f-region-sel').value;
+  const region = document.getElementById('f-zone').value;
 
   const newReq = {
     id, date:new Date().toISOString().split('T')[0],
