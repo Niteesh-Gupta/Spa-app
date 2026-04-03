@@ -429,14 +429,14 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
         </div>
         <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div>
-            <label class="lbl">Zone</label>
+            <label class="lbl">Sales Region</label>
             <select class="sel" id="f-region-sel">
               <option value="">— select —</option>
               <option>North</option><option>South</option><option>East</option><option>West</option>
             </select>
           </div>
           <div>
-            <label class="lbl">Region</label>
+            <label class="lbl">Zone</label>
             <input class="inp" id="f-zone" placeholder="e.g. Delhi NCR">
           </div>
         </div>
@@ -922,7 +922,11 @@ function getRoleVisibleRequests() {
   if(!_role) return requests; // pre-login: show all (shouldn't happen)
   if(_role==='TM') return requests.filter(r=>r.tm===_name);
   if(_role==='SC') return requests.filter(r=>r.status==='Approved');
-  return requests; // RSM, ZSM, NSM, CM see all requests
+  if(_role==='ZSM') return requests.filter(r=>{
+    const h=HIER[r.tm];
+    return h && h.zsm===_name;
+  });
+  return requests; // RSM, NSM, CM see all requests
 }
 
 // ══════════════════════════════════════════
