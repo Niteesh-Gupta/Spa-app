@@ -379,9 +379,6 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
     <input class="filter-inp" id="srch" placeholder="🔍  Customer / Product..." oninput="renderAll()">
     <select class="filter-sel" id="fStatus" onchange="renderAll()">
       <option value="">All Statuses</option>
-      <option>Approved</option><option>Rejected</option>
-      <option>Pending RSM</option><option>Pending ZSM</option>
-      <option>Pending NSM</option><option>Pending CM</option><option>Pending TM</option>
     </select>
     <select class="filter-sel" id="fStage" onchange="renderAll()">
       <option value="">All Stages</option>
@@ -430,9 +427,18 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
           <label class="lbl">Dealer Name <span style="color:var(--red)">*</span></label>
           <input class="inp" id="f-dealer" placeholder="e.g. Medline Supplies Pvt Ltd">
         </div>
-        <div class="fg">
-          <label class="lbl">Sales Region &amp; Zone</label>
-          <input class="inp" id="f-region" readonly>
+        <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label class="lbl">Sales Region</label>
+            <select class="sel" id="f-region-sel">
+              <option value="">— select —</option>
+              <option>North</option><option>South</option><option>East</option><option>West</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Zone</label>
+            <input class="inp" id="f-zone" placeholder="e.g. Delhi NCR">
+          </div>
         </div>
         <div class="fg">
           <label class="lbl">Territory Manager</label>
@@ -913,13 +919,9 @@ function updateBadge(){
 // Returns the subset of requests each role is allowed to see
 function getRoleVisibleRequests() {
   if(!_role) return requests; // pre-login: show all (shouldn't happen)
-  if(_role==='TM')  return requests.filter(r=>r.tm===_name);
-  if(_role==='RSM') return requests.filter(r=>r.status==='Pending RSM'||r.tier==='RSM');
-  if(_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM'||r.tier==='ZSM');
-  if(_role==='NSM') return requests.filter(r=>r.status==='Pending NSM'||r.tier==='NSM');
-  if(_role==='CM')  return requests.filter(r=>r.status==='Pending CM' ||r.tier==='CM');
-  if(_role==='SC')  return requests.filter(r=>r.status==='Approved');
-  return requests;
+  if(_role==='TM') return requests.filter(r=>r.tm===_name);
+  if(_role==='SC') return requests.filter(r=>r.status==='Approved');
+  return requests; // RSM, ZSM, NSM, CM see all requests
 }
 
 // ══════════════════════════════════════════
@@ -952,13 +954,14 @@ function renderDash(){
   else if(_role==='CM')  dashList=requests.filter(r=>r.status==='Pending CM');
   else if(_role==='SC')  dashList=requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed');
 
-  // Show/hide Approve+Reject buttons based on role
-  var canAct = _role && _role!=='TM' && _role!=='SC';
+  // Show/hide Approve+Reject buttons: only when request is pending this role's action
+  var canActRole = _role && _role!=='TM' && _role!=='SC';
 
   document.getElementById('dash-tbody').innerHTML = dashList.length===0
     ? `<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">✅ No pending items for your role right now.</td></tr>`
     : dashList.map(r=>{
     const d=r.sdrPct!==undefined ? r.sdrPct : DISC(r.stdPrice,r.reqPrice);
+    const canAct = canActRole && r.status===`Pending ${_role}`;
     return `<tr>
       <td><strong style="cursor:pointer;color:var(--navy2);" onclick="openDetail('${r.id}')">${r.id}${r.linkedTo?` <span class="badge b-teal" title="Re-raised from ${r.linkedTo}">↑</span>`:''}</strong></td>
       <td>${r.date}</td><td>${r.tm}</td><td>${r.customer}</td><td>${r.product}</td>
@@ -1078,7 +1081,8 @@ function initForm(){
 function onTMChange(){
   const tm = document.getElementById('f-tm').value;
   const h = HIER[tm]||{};
-  document.getElementById('f-region').value = h.region ? h.region+' Zone' : '';
+  document.getElementById('f-region-sel').value = h.region||'';
+  document.getElementById('f-zone').value = h.zone||'';
   renderFormTimeline(null, null);
 }
 
@@ -1326,6 +1330,9 @@ function submitRequest(){
     ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
     : validRows.length+' products';
 
+  const region = document.getElementById('f-region-sel').value;
+  const zone   = document.getElementById('f-zone').value;
+
   const newReq = {
     id, date:new Date().toISOString().split('T')[0],
     tm, customer:cust, dealer,
@@ -1342,6 +1349,8 @@ function submitRequest(){
     status:t.status, tier:t.tier,
     linkedTo:reraiseFrom||null, extraInfo,
     npd:parseInt(document.getElementById('f-npd').value)||null,
+    region: region||null,
+    zone:   zone||null,
   };
 
   // Add to in-memory array immediately so TM sees it right away
@@ -1672,6 +1681,22 @@ async function loadRequests() {
   renderDash(); renderAll(); updateBadge();
 }
 
+// ── POPULATE STATUS DROPDOWN based on logged-in role ──
+function populateStatusDropdown(){
+  const sel = document.getElementById('fStatus');
+  if(!sel) return;
+  const map = {
+    TM:  ['','Pending RSM','Pending ZSM','Pending NSM','Pending CM','Approved','Rejected'],
+    RSM: ['','Pending RSM','Approved','Rejected'],
+    ZSM: ['','Pending RSM','Pending ZSM','Approved','Rejected'],
+    NSM: ['','Pending RSM','Pending ZSM','Pending NSM','Approved','Rejected'],
+    CM:  ['','Pending RSM','Pending ZSM','Pending NSM','Pending CM','Approved','Rejected'],
+    SC:  ['Approved'],
+  };
+  const opts = map[_role] || ['','Approved','Rejected','Pending RSM','Pending ZSM','Pending NSM','Pending CM'];
+  sel.innerHTML = opts.map(v=>`<option value="${v}">${v===''?'All Statuses':v}</option>`).join('');
+}
+
 // ── ENTER APP ──
 function enterApp() {
   if (!_role) return;
@@ -1697,6 +1722,7 @@ function enterApp() {
   existing.style.color       = textColors[_role]||'#1E40AF';
 
   applyRoleSidebar();
+  populateStatusDropdown();
 
   var q = getRoleQueueCount();
   existing.innerHTML =
