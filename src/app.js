@@ -250,8 +250,13 @@ app.post('/api/requests', verifyToken, async (req, res) => {
     .select()
     .single();
 
-  // Migration 002 not yet applied — retry with only the base columns that exist
-  if (error && error.message && error.message.includes('does not exist')) {
+  // Migration 002 not yet applied — retry with only the base columns that exist.
+  // Supabase PostgREST reports this as "schema cache" or "does not exist".
+  if (error && error.message && (
+    error.message.includes('does not exist') ||
+    error.message.includes('schema cache') ||
+    error.message.includes('Could not find')
+  )) {
     console.warn('price_requests missing migration-002 columns; inserting base fields only. Run migration 002 in Supabase SQL editor.');
     const baseRow = {
       request_number:        row.request_number,
