@@ -855,6 +855,7 @@ function stageBadge(s){
     "Final / Closing":        "stage-final",
     "Revised Price Required": "stage-revised",
   };
+  if(!s || s==='null') return '—';
   return `<span class="stage-badge ${m[s]||''}">${s}</span>`;
 }
 function tierBadge(t){
