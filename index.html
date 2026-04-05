@@ -898,6 +898,8 @@ function nav(id,el){
 function updateBadge(){
   const p = getRoleQueueCount();
   document.getElementById('pending-badge').textContent=p;
+  const banner = document.getElementById('banner-action-count');
+  if(banner) banner.textContent=p+' item'+(p!==1?'s':'')+' pending your action';
 }
 
 // ── ROLE-FILTERED DATASET ──
@@ -917,21 +919,21 @@ function getRoleVisibleRequests() {
 // DASHBOARD
 // ══════════════════════════════════════════
 function renderDash(){
-  // ── Role-filtered dataset ──
-  var visible = getRoleVisibleRequests();
-  var myPending = visible.filter(r=>(r.status||'').startsWith('Pending'));
-
-  // KPIs — scoped to what this role can see
-  var total    = visible.length;
-  var approved = visible.filter(r=>r.status==='Approved').length;
-  var pending  = myPending.length;
-  var rejected = visible.filter(r=>r.status==='Rejected').length;
-  var reraised = visible.filter(r=>r.linkedTo).length;
+  // KPIs — computed directly from the loaded requests array
+  var total    = requests.length;
+  var approved = requests.filter(r=>r.status==='Approved').length;
+  var pending  = requests.filter(r=>(r.status||'').startsWith('Pending')).length;
+  var rejected = requests.filter(r=>r.status==='Rejected').length;
+  var reraised = requests.filter(r=>r.status==='Re-Raised').length;
   document.getElementById('k-total').textContent=total;
   document.getElementById('k-approved').textContent=approved;
   document.getElementById('k-pending').textContent=pending;
   document.getElementById('k-rejected').textContent=rejected;
   document.getElementById('k-reraised').textContent=reraised;
+
+  // ── Role-filtered dataset for the dashboard table ──
+  var visible = getRoleVisibleRequests();
+  var myPending = visible.filter(r=>(r.status||'').startsWith('Pending'));
 
   // Dashboard table — pending items relevant to this role
   var dashList = myPending;
@@ -1713,7 +1715,7 @@ function enterApp() {
   existing.innerHTML =
     '<span><strong>'+_role+' View</strong> &nbsp;·&nbsp; '+_name+'</span>'+
     '<span style="display:flex;align-items:center;gap:12px;">'+
-      '<span style="background:rgba(0,0,0,.1);padding:2px 10px;border-radius:10px;font-size:10px;">'+
+      '<span id="banner-action-count" style="background:rgba(0,0,0,.1);padding:2px 10px;border-radius:10px;font-size:10px;">'+
         q+' item'+(q!==1?'s':'')+' pending your action'+
       '</span>'+
       '<button onclick="logout()" style="background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.15);border-radius:4px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;color:inherit;">Sign Out</button>'+
