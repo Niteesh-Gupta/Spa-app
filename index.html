@@ -834,23 +834,7 @@ function getApproverName(tm,tier){
   return {RSM:h.rsm,ZSM:h.zsm,NSM:h.nsm,CM:h.cm}[tier]||"—";
 }
 
-let requests = [
-  // Raj Kumar (real Supabase TM) demo requests — shown until real DB data loads
-  {id:"SPA-020",date:"2026-03-20",tm:"Raj Kumar",customer:"Apollo Hospitals Delhi",product:"Alterna 1PC OPEN MX TR 10/80MM",stdPrice:431,reqPrice:340,volume:200,justification:"Tender for annual supply to Apollo chain — North region",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null,sdrPct:20.9},
-  {id:"SPA-021",date:"2026-03-22",tm:"Raj Kumar",customer:"Max Healthcare",product:"2PC URO maxi opaque 40mm U",stdPrice:374,reqPrice:260,volume:500,justification:"Volume deal for 3 hospitals, 500 units per month",dealStage:"Final / Closing",status:"Approved",tier:"ZSM",linkedTo:null,extraInfo:null,sdrPct:28.1},
-  {id:"SPA-001",date:"2026-03-01",tm:"Arjun Mehta",customer:"Tata Motors Ltd",product:"HydraComp X200",stdPrice:12500,reqPrice:10800,volume:500,compPrice:10500,justification:"Competitor offering same spec at ₹10,500 for bulk order",dealStage:"Negotiation In Progress",status:"Pending RSM",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-002",date:"2026-03-02",tm:"Sunita Rao",customer:"Mahindra & Mahindra",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:7700,volume:1200,compPrice:7500,justification:"Long-term account, 3yr contract opportunity",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-003",date:"2026-03-03",tm:"Deepak Joshi",customer:"Bajaj Auto",product:"ThermoShield 120",stdPrice:15000,reqPrice:12000,volume:300,compPrice:11800,justification:"New customer acquisition — strategic account",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-004",date:"2026-03-04",tm:"Meena Pillai",customer:"TVS Motor Co",product:"HydraComp X200",stdPrice:12500,reqPrice:11500,volume:800,compPrice:null,justification:"Volume commitment of 800 units for Q1",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-005",date:"2026-03-05",tm:"Arjun Mehta",customer:"Hero MotoCorp",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:5000,volume:2000,compPrice:6200,justification:"Major tender win, 2000 units committed",dealStage:"Quotation Stage",status:"Rejected",tier:"CM",linkedTo:null,extraInfo:{revLY:120,revTY:180,relSince:2020,acctClass:"Tender / Bid",stratJust:"National tender — winning this sets precedent for 3 state tenders"}},
-  {id:"SPA-006",date:"2026-03-06",tm:"Rahul Desai",customer:"Ashok Leyland",product:"VibraStop 88",stdPrice:22000,reqPrice:19800,volume:150,compPrice:19500,justification:"RSM pre-approved similar deal last quarter",dealStage:"Negotiation In Progress",status:"Pending NSM",tier:"NSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-007",date:"2026-03-07",tm:"Sunita Rao",customer:"Force Motors",product:"ThermoShield 120",stdPrice:15000,reqPrice:13500,volume:400,compPrice:13000,justification:"Existing customer pushing for renewal discount",dealStage:"Final / Closing",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-008",date:"2026-03-08",tm:"Deepak Joshi",customer:"Eicher Motors",product:"HydraComp X200",stdPrice:12500,reqPrice:10000,volume:600,compPrice:9800,justification:"Dealer under threat from local supplier",dealStage:"Revised Price Required",status:"Pending RSM",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-009",date:"2026-03-09",tm:"Meena Pillai",customer:"Maruti Suzuki",product:"VibraStop 88",stdPrice:22000,reqPrice:20500,volume:250,compPrice:null,justification:"Standard seasonal discount request",dealStage:"Quotation Stage",status:"Approved",tier:"RSM",linkedTo:null,extraInfo:null},
-  {id:"SPA-010",date:"2026-03-10",tm:"Rahul Desai",customer:"Royal Enfield",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:8000,volume:900,compPrice:7900,justification:"Pool dealer request for end-of-quarter push",dealStage:"Negotiation In Progress",status:"Pending ZSM",tier:"ZSM",linkedTo:null,extraInfo:null},
-  // re-raised from SPA-005
-  {id:"SPA-011",date:"2026-03-11",tm:"Arjun Mehta",customer:"Hero MotoCorp",product:"FlexSeal Pro 44",stdPrice:8800,reqPrice:6200,volume:2000,compPrice:6200,justification:"Revised pricing based on CM feedback — aligned to competitor floor. Tender deadline March 25.",dealStage:"Negotiation In Progress",status:"Pending CM",tier:"CM",linkedTo:"SPA-005",extraInfo:{revLY:120,revTY:180,relSince:2020,acctClass:"Tender / Bid",stratJust:"Re-raised with revised price aligned to competitor. Tender deadline is March 25 — approval needed urgently."}},
-];
+let requests = [];
 
 let apiKey = "";
 let reraiseFrom = null;
@@ -1674,14 +1658,10 @@ async function loadRequests() {
       headers: { 'Authorization': 'Bearer ' + _token }
     });
     if (res.ok) {
-      const data = await res.json();
-      if (data && data.length > 0) {
-        requests = data;
-      }
-      // If empty array returned (table not yet seeded), keep demo data
+      requests = await res.json();
     }
   } catch(e) {
-    // Network error — keep demo data
+    console.error('Failed to load requests:', e);
   }
   renderDash(); renderAll(); updateBadge();
 }
