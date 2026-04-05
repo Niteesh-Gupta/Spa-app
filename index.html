@@ -935,15 +935,14 @@ function renderDash(){
   var visible = getRoleVisibleRequests();
   var myPending = visible.filter(r=>(r.status||'').startsWith('Pending'));
 
-  // Dashboard table — pending items relevant to this role
+  // Dashboard table — pending items for this role, scoped to their visible hierarchy
   var dashList = myPending;
 
-  // TM: show all their own pending; Approvers: show only their tier
-  if(_role==='RSM') dashList=requests.filter(r=>r.status==='Pending RSM');
-  else if(_role==='ZSM') dashList=requests.filter(r=>r.status==='Pending ZSM');
-  else if(_role==='NSM') dashList=requests.filter(r=>r.status==='Pending NSM');
-  else if(_role==='CM')  dashList=requests.filter(r=>r.status==='Pending CM');
-  else if(_role==='SC')  dashList=requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed');
+  if(_role==='RSM') dashList=visible.filter(r=>r.status==='Pending RSM');
+  else if(_role==='ZSM') dashList=visible.filter(r=>r.status==='Pending ZSM');
+  else if(_role==='NSM') dashList=visible.filter(r=>r.status==='Pending NSM');
+  else if(_role==='CM')  dashList=visible.filter(r=>r.status==='Pending CM');
+  else if(_role==='SC')  dashList=visible.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed');
 
   // Show/hide Approve+Reject buttons: only when request is pending this role's action
   var canActRole = _role && _role!=='TM' && _role!=='SC';
@@ -1755,12 +1754,13 @@ function logout() {
 // ── ROLE QUEUE COUNT (live) ──
 function getRoleQueueCount() {
   if (!_role) return 0;
-  if (_role==='TM')  return requests.filter(r=>(r.status||'').startsWith('Pending')&&r.tm===_name).length;
-  if (_role==='RSM') return requests.filter(r=>r.status==='Pending RSM').length;
-  if (_role==='ZSM') return requests.filter(r=>r.status==='Pending ZSM').length;
-  if (_role==='NSM') return requests.filter(r=>r.status==='Pending NSM').length;
-  if (_role==='CM')  return requests.filter(r=>r.status==='Pending CM').length;
-  if (_role==='SC')  return requests.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed').length;
+  const vis = getRoleVisibleRequests();
+  if (_role==='TM')  return vis.filter(r=>(r.status||'').startsWith('Pending')).length;
+  if (_role==='RSM') return vis.filter(r=>r.status==='Pending RSM').length;
+  if (_role==='ZSM') return vis.filter(r=>r.status==='Pending ZSM').length;
+  if (_role==='NSM') return vis.filter(r=>r.status==='Pending NSM').length;
+  if (_role==='CM')  return vis.filter(r=>r.status==='Pending CM').length;
+  if (_role==='SC')  return vis.filter(r=>r.status==='Approved'&&r.scStatus!=='Confirmed').length;
   return 0;
 }
 
