@@ -43,11 +43,11 @@ app.post('/api/login', async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
   const token = jwt.sign(
-    { id: user.id, role: user.role, name: user.name },
+    { id: user.id, role: user.role, name: user.name, zone: user.zone || null, region: user.region || null },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
   );
-  res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email, region: user.region } });
+  res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email, zone: user.zone, region: user.region } });
 });
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
@@ -129,14 +129,99 @@ function jsToDb(obj, userId) {
   };
 }
 
+// ── Visibility helper ─────────────────────────────────────────────────────────
+//
+// Hierarchy:  TM → RSM (same region) → ZSM (same zone) → NSM → CM
+//
+//   TM / TENDER_MANAGER : own requests only
+//   RSM                 : own + all TMs sharing the same zone + region
+//   ZSM                 : all TMs and RSMs in the same zone
+//   NSM / CM            : all requests, all zones
+//   SUPPLY_CHAIN        : ACTIVE_CONTRACT requests with discount_percent > 35
+//   FINANCE / ADMIN     : all requests
+//
+// zone and region come from the JWT (set at login from users table).
+// ─────────────────────────────────────────────────────────────────────────────
+async function buildVisibilityFilter(user) {
+  const { role, id: userId, zone, region } = user;
+
+  // Roles that see everything
+  if (['NSM', 'CM', 'FINANCE', 'ADMIN'].includes(role)) {
+    return { filter: null, supplyChainOnly: false };
+  }
+
+  // Supply Chain: approved deals above threshold only
+  if (role === 'SUPPLY_CHAIN') {
+    return { filter: null, supplyChainOnly: true };
+  }
+
+  // TM / TENDER_MANAGER: own requests only
+  if (role === 'TM' || role === 'TENDER_MANAGER') {
+    return { filter: { column: 'created_by', op: 'eq', value: userId }, supplyChainOnly: false };
+  }
+
+  // RSM: own requests + TMs in the same region
+  if (role === 'RSM') {
+    const { data: peers } = await supabase
+      .from('users')
+      .select('id')
+      .eq('zone', zone)
+      .eq('region', region)
+      .in('role', ['TM', 'RSM']);
+    const ids = (peers || []).map(u => u.id);
+    if (!ids.includes(userId)) ids.push(userId);
+    return { filter: { column: 'created_by', op: 'in', value: ids }, supplyChainOnly: false };
+  }
+
+  // ZSM: all TMs and RSMs in the same zone
+  if (role === 'ZSM') {
+    const { data: zoneUsers } = await supabase
+      .from('users')
+      .select('id')
+      .eq('zone', zone)
+      .in('role', ['TM', 'RSM']);
+    const ids = (zoneUsers || []).map(u => u.id);
+    return { filter: { column: 'created_by', op: 'in', value: ids }, supplyChainOnly: false };
+  }
+
+  // Fallback — own only
+  return { filter: { column: 'created_by', op: 'eq', value: userId }, supplyChainOnly: false };
+}
+
 // ── Requests ──────────────────────────────────────────────────────────────────
-app.get('/api/requests', verifyToken, async (_req, res) => {
-  const { data, error } = await supabase
-    .from('price_requests')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) return res.status(500).json({ error: error.message });
-  res.json((data || []).map(dbToJs));
+app.get('/api/requests', verifyToken, async (req, res) => {
+  try {
+    const { filter, supplyChainOnly } = await buildVisibilityFilter(req.user);
+
+    let query = supabase
+      .from('price_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (supplyChainOnly) {
+      // Supply Chain sees only finalised contracts above 35% discount
+      query = query
+        .eq('status', 'ACTIVE_CONTRACT')
+        .gt('discount_percent', 35);
+    } else if (filter) {
+      if (filter.op === 'eq') {
+        query = query.eq(filter.column, filter.value);
+      } else if (filter.op === 'in') {
+        if (filter.value.length === 0) {
+          // No matching subordinates — return empty
+          return res.json([]);
+        }
+        query = query.in(filter.column, filter.value);
+      }
+    }
+    // null filter → no restriction → all rows
+
+    const { data, error } = await query;
+    if (error) return res.status(500).json({ error: error.message });
+    res.json((data || []).map(dbToJs));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/requests', verifyToken, async (req, res) => {
