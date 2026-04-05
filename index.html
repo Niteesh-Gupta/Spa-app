@@ -1282,7 +1282,7 @@ function renderFormTimeline(disc,t){
     '</div></div>').join('');
 }
 
-function submitRequest(){
+async function submitRequest(){
   const tm=document.getElementById('f-tm').value;
   const cust=document.getElementById('f-customer').value.trim();
   const dealer=document.getElementById('f-dealer').value.trim();
@@ -1343,22 +1343,32 @@ function submitRequest(){
     zone:   zone||null,
   };
 
-  // Add to in-memory array immediately so TM sees it right away
-  requests.unshift(newReq);
-
   const linkedFrom = reraiseFrom;
   reraiseFrom=null;
-  showToast(id+' submitted — routed to '+t.label,'s');
-  nav('requests',null);
 
-  // Persist to Supabase in background
-  fetch(API_BASE+'/api/requests', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
-    body:JSON.stringify(newReq)
-  }).then(r=>{
-    if(!r.ok) console.warn('Failed to save request to DB:', r.status);
-  }).catch(e=>{ /* offline — in-memory copy stands */ });
+  // Persist to Supabase — await so errors are visible
+  let saved;
+  try {
+    const res = await fetch(API_BASE+'/api/requests', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify(newReq)
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error:'HTTP '+res.status}));
+      showToast('Save failed: '+(err.error||res.status),'e');
+      return;
+    }
+    saved = await res.json();
+  } catch(e){
+    showToast('Network error — request not saved','e');
+    return;
+  }
+
+  // Only update in-memory + navigate after confirmed save
+  requests.unshift(saved);
+  showToast(saved.id+' submitted — routed to '+t.label,'s');
+  nav('requests',null);
 }
 
 // ══════════════════════════════════════════

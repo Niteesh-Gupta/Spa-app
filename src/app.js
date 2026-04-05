@@ -218,7 +218,25 @@ app.get('/api/requests', verifyToken, async (req, res) => {
 
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
-    res.json((data || []).map(dbToJs));
+
+    const rows = data || [];
+
+    // Enrich tm_name from users table when the column is missing or null
+    // (migration 002 not yet applied, or rows inserted before migration)
+    const needsEnrich = rows.some(r => !r.tm_name && r.created_by);
+    let nameMap = {};
+    if (needsEnrich) {
+      const ids = [...new Set(rows.map(r => r.created_by).filter(Boolean))];
+      if (ids.length > 0) {
+        const { data: users } = await supabase.from('users').select('id,name').in('id', ids);
+        nameMap = Object.fromEntries((users || []).map(u => [u.id, u.name]));
+      }
+    }
+
+    res.json(rows.map(r => dbToJs({
+      ...r,
+      tm_name: r.tm_name || nameMap[r.created_by] || null,
+    })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -226,13 +244,39 @@ app.get('/api/requests', verifyToken, async (req, res) => {
 
 app.post('/api/requests', verifyToken, async (req, res) => {
   const row = jsToDb(req.body, req.user.id);
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('price_requests')
     .insert([row])
     .select()
     .single();
+
+  // Migration 002 not yet applied — retry with only the base columns that exist
+  if (error && error.message && error.message.includes('does not exist')) {
+    console.warn('price_requests missing migration-002 columns; inserting base fields only. Run migration 002 in Supabase SQL editor.');
+    const baseRow = {
+      request_number:        row.request_number,
+      created_by:            row.created_by,
+      customer_name:         row.customer_name,
+      product:               row.product,
+      standard_price:        row.standard_price,
+      requested_price:       row.requested_price,
+      discount_percent:      row.discount_percent,
+      quantity:              row.quantity,
+      reason:                row.reason,
+      status:                row.status,
+      current_approver_role: row.current_approver_role,
+    };
+    ({ data, error } = await supabase
+      .from('price_requests')
+      .insert([baseRow])
+      .select()
+      .single());
+  }
+
   if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(dbToJs(data));
+  // Augment the saved row with tm_name so the response has a useful tm field
+  const savedRow = { ...data, tm_name: data.tm_name || req.body.tm || null };
+  res.status(201).json(dbToJs(savedRow));
 });
 
 // PATCH /api/requests/:id  — :id is the SPA-xxx request_number
