@@ -1375,17 +1375,15 @@ async function submitRequest(){
       acctClass:document.getElementById('f-acct-class').value,stratJust:stratJ};
   }
 
-  // Generate next ID from the highest numeric suffix in existing requests
-  const maxNum=requests.reduce((m,r)=>{const n=parseInt((r.id||'').replace('SPA-',''))||0;return Math.max(m,n);},0);
-  const id='SPA-'+String(maxNum+1).padStart(3,'0');
   const skuLabel=validRows.length===1
     ? (validRows[0].code+(validRows[0].desc?' — '+validRows[0].desc.substring(0,30):''))
     : validRows.length+' products';
 
   const zone   = document.getElementById('f-region-sel').value;
 
+  // id is intentionally omitted — server generates request_number from DB max
   const newReq = {
-    id, date:new Date().toISOString().split('T')[0],
+    date:new Date().toISOString().split('T')[0],
     tm, customer:cust, dealer,
     product:skuLabel,
     skus:skuRows.filter(r=>r.code).map(r=>Object.assign({},r)),

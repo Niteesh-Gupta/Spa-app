@@ -123,7 +123,18 @@ router.post('/', verifyToken, async (req, res) => {
   }
   req.body.validityDays = vdInt;
 
+  // Generate request_number server-side from the DB max — never trust the client.
+  // Client-side generation caused SPA-001 collisions when TMs have no prior requests
+  // (their filtered GET returns empty, so maxNum=0 every time).
+  const { data: allNums } = await supabase.from('price_requests').select('request_number');
+  const maxNum = (allNums || []).reduce((m, r) => {
+    const n = parseInt((r.request_number || '').replace('SPA-', '')) || 0;
+    return Math.max(m, n);
+  }, 0);
+
   const row = jsToDb(req.body, req.user.id);
+  row.request_number = 'SPA-' + String(maxNum + 1).padStart(3, '0');
+
   let { data, error } = await supabase.from('price_requests').insert([row]).select().single();
 
   // Migration 002 not yet applied — retry with only the base columns that exist.
