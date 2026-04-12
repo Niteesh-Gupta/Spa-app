@@ -342,7 +342,6 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
   <div class="sidebar-grp">
     <div class="sidebar-grp-label">Reference</div>
     <div class="nav-item" onclick="nav('hierarchy',this)"><span class="nav-icon">👥</span>Hierarchy</div>
-    <div class="nav-item" onclick="nav('pricelist',this)"><span class="nav-icon">📦</span>Price List</div>
     <div class="nav-item" onclick="nav('tiers',this)"><span class="nav-icon">🎯</span>Approval Tiers</div>
   </div>
 </div>
@@ -602,39 +601,10 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 
 <!-- ══════════ HIERARCHY ══════════ -->
 <div class="page" id="page-hierarchy">
-  <div class="ph"><div class="ph-left"><div class="ph-title">Approval Hierarchy</div><div class="ph-sub">TM → RSM → ZSM → NSM → Country Manager</div></div></div>
-  <div class="card">
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>TM Name</th><th>RSM</th><th>ZSM</th><th>Region Head / NSM</th><th>Region</th></tr></thead>
-      <tbody>
-        <tr><td>Raj Kumar</td><td>Priya Singh</td><td>Anil Mehta</td><td>Sunita Rao</td><td>North</td></tr>
-        <tr><td>Arjun Mehta</td><td>Ravi Sharma</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
-        <tr><td>Sunita Rao</td><td>Vikram Patel</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
-        <tr><td>Deepak Joshi</td><td>Kavya Reddy</td><td>Suresh Iyer</td><td>Anand Kumar</td><td>South</td></tr>
-        <tr><td>Meena Pillai</td><td>Ravi Sharma</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
-        <tr><td>Rahul Desai</td><td>Vikram Patel</td><td>Vikram Singh</td><td>Priya Nair</td><td>West</td></tr>
-      </tbody>
-    </table></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Approval Hierarchy</div><div class="ph-sub">Live data from users table — TM → RSM → ZSM → NSM, grouped by zone</div></div></div>
+  <div id="hierarchy-body"><div style="padding:32px;color:var(--muted);text-align:center;">Loading…</div></div>
 </div>
 
-<!-- ══════════ PRICE LIST ══════════ -->
-<div class="page" id="page-pricelist">
-  <div class="ph"><div class="ph-left"><div class="ph-title">Product Price List</div><div class="ph-sub">Standard and floor prices</div></div></div>
-  <div class="card">
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Standard ₹</th><th>Floor ₹</th><th>Max Disc%</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>HC-X200</td><td>HydraComp X200</td><td>Hydraulic</td><td>₹12,500</td><td>₹9,500</td><td>24%</td><td>High runner — competitive market</td></tr>
-        <tr><td>FS-P44</td><td>FlexSeal Pro 44</td><td>Sealing</td><td>₹8,800</td><td>₹7,000</td><td>20%</td><td>Standard cap: 20%</td></tr>
-        <tr><td>TS-120</td><td>ThermoShield 120</td><td>Thermal</td><td>₹15,000</td><td>₹11,500</td><td>23%</td><td>Premium — protect margin</td></tr>
-        <tr><td>VS-88</td><td>VibraStop 88</td><td>Vibration</td><td>₹22,000</td><td>₹18,000</td><td>18%</td><td>Niche SKU</td></tr>
-        <tr><td>RC-500</td><td>RotoClamp 500</td><td>Clamping</td><td>₹6,500</td><td>₹5,200</td><td>20%</td><td>High vol, low margin</td></tr>
-        <tr><td>PM-900</td><td>PneumaMax 900</td><td>Pneumatic</td><td>₹31,000</td><td>₹25,000</td><td>19%</td><td>Enterprise only</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-</div>
 
 <!-- ══════════ APPROVAL TIERS ══════════ -->
 <div class="page" id="page-tiers">
@@ -897,9 +867,10 @@ function nav(id,el){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  if(id==='dashboard') renderDash();
-  if(id==='requests')  renderAll();
-  if(id==='newreq')    initForm();
+  if(id==='dashboard')  renderDash();
+  if(id==='requests')   renderAll();
+  if(id==='newreq')     initForm();
+  if(id==='hierarchy')  renderHierarchy();
   updateBadge();
 }
 
@@ -908,6 +879,58 @@ function updateBadge(){
   document.getElementById('pending-badge').textContent=p;
   const banner = document.getElementById('banner-action-count');
   if(banner) banner.textContent=p+' item'+(p!==1?'s':'')+' pending your action';
+}
+
+// ── HIERARCHY (live from /api/users) ──
+async function renderHierarchy(){
+  const el = document.getElementById('hierarchy-body');
+  el.innerHTML = '<div style="padding:32px;color:var(--muted);text-align:center;">Loading…</div>';
+  try {
+    const res = await fetch(API_BASE + '/api/users');
+    if (!res.ok) throw new Error('Failed to load users');
+    const users = await res.json();
+
+    // Build id → user map for manager chain lookups
+    const byId = {};
+    users.forEach(u => byId[u.id] = u);
+
+    // Walk up the manager chain from a user, returning [rsm, zsm, nsm] names
+    function chain(u) {
+      const mgr1 = byId[u.manager_id];
+      const mgr2 = mgr1 ? byId[mgr1.manager_id] : null;
+      const mgr3 = mgr2 ? byId[mgr2.manager_id] : null;
+      return [mgr1, mgr2, mgr3];
+    }
+
+    const tms = users.filter(u => u.role === 'TM').sort((a,b) => (a.zone||'').localeCompare(b.zone||'') || a.name.localeCompare(b.name));
+    const zones = [...new Set(tms.map(u => u.zone || 'Unknown'))].sort();
+
+    if (!tms.length) { el.innerHTML = '<div class="card" style="padding:24px;color:var(--muted);">No TM users found.</div>'; return; }
+
+    let html = '';
+    for (const zone of zones) {
+      const zoneTMs = tms.filter(u => u.zone === zone);
+      html += `<div class="card" style="margin-bottom:16px;">
+        <div class="card-hd"><span class="card-title">${zone} Zone</span><span style="font-size:11px;color:var(--muted);font-weight:400;">${zoneTMs.length} TM${zoneTMs.length!==1?'s':''}</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>TM Name</th><th>Region</th><th>RSM</th><th>ZSM</th><th>NSM</th></tr></thead>
+          <tbody>`;
+      for (const tm of zoneTMs) {
+        const [rsm, zsm, nsm] = chain(tm);
+        html += `<tr>
+          <td><strong>${tm.name}</strong></td>
+          <td style="color:var(--muted);font-size:12px;">${tm.region||'—'}</td>
+          <td>${rsm ? rsm.name : '<span style="color:var(--muted)">—</span>'}</td>
+          <td>${zsm ? zsm.name : '<span style="color:var(--muted)">—</span>'}</td>
+          <td>${nsm ? nsm.name : '<span style="color:var(--muted)">—</span>'}</td>
+        </tr>`;
+      }
+      html += `</tbody></table></div></div>`;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="card" style="padding:24px;color:var(--red);">Failed to load hierarchy: ${e.message}</div>`;
+  }
 }
 
 // ── ROLE-FILTERED DATASET ──

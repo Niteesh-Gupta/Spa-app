@@ -20,7 +20,7 @@ router.get('/health', async (_req, res) => {
 
 // GET /api/users
 router.get('/users', async (_req, res) => {
-  const { data, error } = await supabase.from('users').select('id, name, role, email, region');
+  const { data, error } = await supabase.from('users').select('id, name, role, email, zone, region, manager_id');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
