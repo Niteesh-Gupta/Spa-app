@@ -145,6 +145,7 @@ router.post('/', verifyToken, async (req, res) => {
       reason:                row.reason,
       status:                row.status,
       current_approver_role: row.current_approver_role,
+      validity_days:         row.validity_days,
     };
     ({ data, error } = await supabase.from('price_requests').insert([baseRow]).select().single());
   }

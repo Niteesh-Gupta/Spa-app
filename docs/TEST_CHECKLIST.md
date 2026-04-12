@@ -8,7 +8,7 @@ Live URL: https://spa-app-orpin.vercel.app
 
 **Goal:** TM can log in, fill the form with validity days, and submit a request that routes correctly.
 
-**Preconditions:** Have a TM-role user's email and password (default: `Coloplast@1`).
+**Preconditions:** Have a TM-role user's email and password (default: `Password@123`).
 
 | # | Step | Expected |
 |---|------|----------|
