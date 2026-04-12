@@ -894,12 +894,25 @@ async function renderHierarchy(){
     const byId = {};
     users.forEach(u => byId[u.id] = u);
 
-    // Walk up the manager chain from a user, returning [rsm, zsm, nsm] names
+    // Build zone → ZSM map for fallback (handles acting ZSMs not in direct chain)
+    const zsmByZone = {};
+    users.forEach(u => { if (u.role === 'ZSM' && u.zone) zsmByZone[u.zone] = u; });
+
+    // Walk up the manager chain, assigning each node by role label, not position.
+    // Fallback: if no ZSM found in chain, look up the ZSM for the TM's zone.
+    // This fixes West (NSM was appearing in ZSM column) and East (Sudipta not in chain).
     function chain(u) {
-      const mgr1 = byId[u.manager_id];
-      const mgr2 = mgr1 ? byId[mgr1.manager_id] : null;
-      const mgr3 = mgr2 ? byId[mgr2.manager_id] : null;
-      return [mgr1, mgr2, mgr3];
+      let rsm = null, zsm = null, nsm = null;
+      let cur = byId[u.manager_id];
+      while (cur) {
+        if (!rsm && cur.role === 'RSM') rsm = cur;
+        else if (!zsm && cur.role === 'ZSM') zsm = cur;
+        else if (!nsm && cur.role === 'NSM') nsm = cur;
+        cur = cur.manager_id ? byId[cur.manager_id] : null;
+      }
+      // Zone fallback for ZSM: covers East acting ZSM and any future reassignment
+      if (!zsm && u.zone) zsm = zsmByZone[u.zone] || null;
+      return [rsm, zsm, nsm];
     }
 
     const tms = users.filter(u => u.role === 'TM').sort((a,b) => (a.zone||'').localeCompare(b.zone||'') || a.name.localeCompare(b.name));
