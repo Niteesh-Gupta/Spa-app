@@ -25,8 +25,8 @@ https://spa-app-orpin.vercel.app
 - [x] Phase 2 — Bulk CSV import flow
 - [x] Phase 2 — All India user seeding (73 users: 58 TM, 11 RSM, 3 ZSM, 1 NSM)
 - [ ] Phase 2 — Zone-aware routing logic (TM/RSM/ZSM see only their zone)
-- [ ] Phase 3 — Validity days on submission form
-- [ ] Phase 3 — Deal confirmation flow (14-day window, auto-lapse)
+- [x] Phase 3 — Validity days on submission form
+- [x] Phase 3 — Deal confirmation flow (14-day window, auto-lapse)
 - [ ] Phase 3 — Expiry alert + re-raise
 - [ ] Phase 4 — Clean test data, zone filters, QA, go-live
 
@@ -35,6 +35,9 @@ https://spa-app-orpin.vercel.app
 - Confirmation window: 14 days post-approval, else auto-lapse
 - User import: manual CSV via admin panel
 - Zones: North, South, East, West (all India)
+
+## Phase 3 Notes
+- PATCH /api/requests/:id/confirm live. Lapse check cron runs daily at 01:00 UTC via vercel.json.
 
 ## User Hierarchy Notes
 - 73 users imported (58 TM, 11 RSM, 3 ZSM, 1 NSM)
