@@ -47,5 +47,15 @@ https://spa-app-orpin.vercel.app
 ## Current Blocker
 Phase 2 start — v4_migration.sql connection issue (run manually via Supabase SQL Editor)
 
+## Governance Fixes (12-Apr-2026)
+- [x] Status values standardized to Title case across all files
+- [x] _zone session restore fixed (survives page refresh)
+- [x] f-zone null reference removed from TM form
+- [x] /api/admin/migrate disabled in production (403)
+- [ ] Dealer autocomplete from DB (306 dealers)
+- [ ] Hospital free-text → lookup
+- [ ] Audit trail for all status changes
+- [ ] Frontend split (css/js separation)
+
 ## Instructions for Claude Code — read this at session start
 This is the SPA Special Price Approval system for Coloplast India. Always read this file first before any task.
