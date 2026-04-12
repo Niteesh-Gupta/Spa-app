@@ -358,15 +358,17 @@ app.post('/api/admin/import-users', async (req, res) => {
     return res.status(400).json({ error: 'Body must be a non-empty array of users' });
   }
 
-  const VALID_ROLES = ['TM', 'RSM', 'ZSM', 'NSM', 'CM', 'SC'];
-  const VALID_ZONES = ['North', 'South', 'East', 'West'];
+  const VALID_ROLES      = ['TM', 'RSM', 'ZSM', 'NSM', 'CM', 'SC'];
+  const VALID_ZONES      = ['North', 'South', 'East', 'West'];
+  const ZONE_ALL_ROLES   = ['NSM', 'CM']; // roles permitted to use zone "All"
 
   for (let i = 0; i < users.length; i++) {
     const u = users[i];
     if (!u.name || typeof u.name !== 'string') return res.status(400).json({ error: `users[${i}]: name is required` });
     if (!u.email || typeof u.email !== 'string') return res.status(400).json({ error: `users[${i}]: email is required` });
     if (!VALID_ROLES.includes(u.role)) return res.status(400).json({ error: `users[${i}]: role must be one of ${VALID_ROLES.join(', ')}` });
-    if (!VALID_ZONES.includes(u.zone)) return res.status(400).json({ error: `users[${i}]: zone must be one of ${VALID_ZONES.join(', ')}` });
+    const zoneOk = VALID_ZONES.includes(u.zone) || (ZONE_ALL_ROLES.includes(u.role) && u.zone === 'All');
+    if (!zoneOk) return res.status(400).json({ error: `users[${i}]: zone must be one of ${VALID_ZONES.join(', ')}${ZONE_ALL_ROLES.includes(u.role) ? ' or All' : ''}` });
   }
 
   try {
