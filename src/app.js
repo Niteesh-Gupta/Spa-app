@@ -94,6 +94,7 @@ function dbToJs(row) {
     volume:          row.quantity,
     justification:   row.reason,
     dealStage:       row.deal_stage,
+    validityDays:    row.validity_days,
     status:          row.status,
     tier:            row.current_approver_role,
     linkedTo:        row.linked_to,
@@ -121,6 +122,7 @@ function jsToDb(obj, userId) {
     quantity:              obj.volume       || null,
     reason:                obj.justification,
     deal_stage:            obj.dealStage    || null,
+    validity_days:         obj.validityDays || null,
     status:                obj.status,
     current_approver_role: obj.tier,
     linked_to:             obj.linkedTo     || null,
@@ -245,6 +247,12 @@ app.get('/api/requests', verifyToken, async (req, res) => {
 });
 
 app.post('/api/requests', verifyToken, async (req, res) => {
+  const vd = req.body.validityDays;
+  if (vd === undefined || vd === null) return res.status(400).json({ error: 'validityDays is required' });
+  const vdInt = parseInt(vd, 10);
+  if (!Number.isInteger(vdInt) || vdInt < 1 || vdInt > 365) return res.status(400).json({ error: 'validityDays must be an integer between 1 and 365' });
+  req.body.validityDays = vdInt;
+
   const row = jsToDb(req.body, req.user.id);
   let { data, error } = await supabase
     .from('price_requests')
