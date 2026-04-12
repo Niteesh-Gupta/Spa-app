@@ -35,7 +35,7 @@ router.post('/run-lapse-check', async (req, res) => {
   const { data: toUpdate, error: fetchErr } = await supabase
     .from('price_requests')
     .select('id, request_number')
-    .eq('status', 'approved')
+    .eq('status', 'Approved')
     .is('confirmed_at', null)
     .lt('lapse_deadline', now);
 

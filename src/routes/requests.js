@@ -194,7 +194,7 @@ router.patch('/:id/confirm', verifyToken, async (req, res) => {
 
   if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
   if (request.created_by !== req.user.id) return res.status(403).json({ error: 'You can only confirm your own requests' });
-  if (request.status !== 'approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+  if (request.status.toLowerCase() !== 'approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
   if (request.confirmed_at) return res.status(400).json({ error: 'Request has already been confirmed' });
 
   const confirmedAt       = new Date();
