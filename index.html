@@ -898,21 +898,28 @@ async function renderHierarchy(){
     const zsmByZone = {};
     users.forEach(u => { if (u.role === 'ZSM' && u.zone) zsmByZone[u.zone] = u; });
 
-    // Walk up the manager chain, assigning each node by role label, not position.
-    // Fallback: if no ZSM found in chain, look up the ZSM for the TM's zone.
-    // This fixes West (NSM was appearing in ZSM column) and East (Sudipta not in chain).
+    // Build chain for a TM → [rsm, zsm, nsm]
+    // RSM column: always the TM's direct manager (mgr1), regardless of their stored role.
+    //   East TMs report directly to Sudipta (ZSM) — he appears in RSM column as their
+    //   functional line manager, and again in ZSM column via zone fallback.
+    // ZSM column: first ZSM-role user in the remaining chain, or zone-based fallback.
+    //   West has no ZSM (vacant) so zone fallback returns null → shows "—".
+    // NSM column: first NSM-role user found anywhere in the chain.
     function chain(u) {
-      let rsm = null, zsm = null, nsm = null;
-      let cur = byId[u.manager_id];
+      const mgr1 = byId[u.manager_id] || null;
+      let zsm = null, nsm = null;
+      let cur = mgr1 ? byId[mgr1.manager_id] : null;
       while (cur) {
-        if (!rsm && cur.role === 'RSM') rsm = cur;
-        else if (!zsm && cur.role === 'ZSM') zsm = cur;
+        if (!zsm && cur.role === 'ZSM') zsm = cur;
         else if (!nsm && cur.role === 'NSM') nsm = cur;
         cur = cur.manager_id ? byId[cur.manager_id] : null;
       }
-      // Zone fallback for ZSM: covers East acting ZSM and any future reassignment
       if (!zsm && u.zone) zsm = zsmByZone[u.zone] || null;
-      return [rsm, zsm, nsm];
+      if (!nsm && zsm && zsm.manager_id) {
+        const zsmMgr = byId[zsm.manager_id];
+        if (zsmMgr && zsmMgr.role === 'NSM') nsm = zsmMgr;
+      }
+      return [mgr1, zsm, nsm];
     }
 
     const tms = users.filter(u => u.role === 'TM').sort((a,b) => (a.zone||'').localeCompare(b.zone||'') || a.name.localeCompare(b.name));
