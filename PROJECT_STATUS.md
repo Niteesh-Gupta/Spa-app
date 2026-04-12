@@ -22,7 +22,8 @@ https://spa-app-orpin.vercel.app
 - [x] Phase 1 — TM/user list imported (74 users)
 - [x] Phase 1 — Dealer list imported (306 rows)
 - [ ] Phase 2 — Admin user management panel (UI)
-- [ ] Phase 2 — Bulk CSV import flow
+- [x] Phase 2 — Bulk CSV import flow
+- [x] Phase 2 — All India user seeding (73 users: 58 TM, 11 RSM, 3 ZSM, 1 NSM)
 - [ ] Phase 2 — Zone-aware routing logic (TM/RSM/ZSM see only their zone)
 - [ ] Phase 3 — Validity days on submission form
 - [ ] Phase 3 — Deal confirmation flow (14-day window, auto-lapse)
@@ -34,6 +35,11 @@ https://spa-app-orpin.vercel.app
 - Confirmation window: 14 days post-approval, else auto-lapse
 - User import: manual CSV via admin panel
 - Zones: North, South, East, West (all India)
+
+## User Hierarchy Notes
+- 73 users imported (58 TM, 11 RSM, 3 ZSM, 1 NSM)
+- West ZSM vacant — West RSMs (injj, inpps, inpjm) report to NSM directly
+- East ZSM = insdc@coloplast.com (dual role: also RSM East)
 
 ## Current Blocker
 Phase 2 start — v4_migration.sql connection issue (run manually via Supabase SQL Editor)
