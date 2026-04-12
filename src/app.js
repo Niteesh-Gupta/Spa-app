@@ -93,13 +93,17 @@ function dbToJs(row) {
     sdrPct:          row.discount_percent,
     volume:          row.quantity,
     justification:   row.reason,
-    dealStage:       row.deal_stage,
-    validityDays:    row.validity_days,
-    status:          row.status,
-    tier:            row.current_approver_role,
-    linkedTo:        row.linked_to,
-    extraInfo:       row.extra_info,
-    npd:             row.npd,
+    dealStage:          row.deal_stage,
+    validityDays:       row.validity_days,
+    approvedAt:         row.approved_at,
+    confirmedAt:        row.confirmed_at,
+    lapseDeadline:      row.lapse_deadline,
+    validityExpiresAt:  row.validity_expires_at,
+    status:             row.status,
+    tier:               row.current_approver_role,
+    linkedTo:           row.linked_to,
+    extraInfo:          row.extra_info,
+    npd:                row.npd,
   };
 }
 
@@ -298,7 +302,15 @@ app.post('/api/requests', verifyToken, async (req, res) => {
 app.patch('/api/requests/:id', verifyToken, async (req, res) => {
   const { id } = req.params;           // "SPA-001" etc.
   const updates = {};
-  if (req.body.status !== undefined) updates.status = req.body.status;
+  if (req.body.status !== undefined) {
+    updates.status = req.body.status;
+    // Record approval timestamp and set the 14-day confirmation deadline
+    if (req.body.status === 'approved') {
+      const now = new Date();
+      updates.approved_at    = now.toISOString();
+      updates.lapse_deadline = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    }
+  }
   updates.updated_at = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -309,6 +321,97 @@ app.patch('/api/requests/:id', verifyToken, async (req, res) => {
     .single();
   if (error) return res.status(500).json({ error: error.message });
   res.json(dbToJs(data));
+});
+
+// PATCH /api/requests/:id/confirm  — TM confirms their own approved deal
+// Sets confirmed_at, deal_stage = 'confirmed', validity_expires_at = confirmed_at + validity_days
+app.patch('/api/requests/:id/confirm', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  // Only TMs can confirm
+  if (req.user.role !== 'TM') {
+    return res.status(403).json({ error: 'Only a TM can confirm a deal' });
+  }
+
+  // Fetch the request
+  const { data: request, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number, status, created_by, confirmed_at, validity_days')
+    .eq('request_number', id)
+    .single();
+
+  if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
+
+  // Must be the TM who created it
+  if (request.created_by !== req.user.id) {
+    return res.status(403).json({ error: 'You can only confirm your own requests' });
+  }
+
+  // Must be in approved status
+  if (request.status !== 'approved') {
+    return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+  }
+
+  // Guard against double-confirm
+  if (request.confirmed_at) {
+    return res.status(400).json({ error: 'Request has already been confirmed' });
+  }
+
+  const confirmedAt = new Date();
+  const validityDays = request.validity_days || 0;
+  const validityExpiresAt = new Date(confirmedAt.getTime() + validityDays * 24 * 60 * 60 * 1000);
+
+  const { data, error: updateErr } = await supabase
+    .from('price_requests')
+    .update({
+      confirmed_at:        confirmedAt.toISOString(),
+      deal_stage:          'confirmed',
+      validity_expires_at: validityExpiresAt.toISOString(),
+      updated_at:          confirmedAt.toISOString(),
+    })
+    .eq('request_number', id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json(dbToJs(data));
+});
+
+// POST /api/admin/run-lapse-check
+// Marks approved deals as lapsed when the 14-day confirmation window has expired.
+// Called daily by Vercel Cron (see vercel.json). Also callable manually with ADMIN_SECRET.
+app.post('/api/admin/run-lapse-check', async (req, res) => {
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured on server' });
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ') || auth.slice(7) !== adminSecret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const now = new Date().toISOString();
+
+  // Find approved requests where the TM missed the 14-day confirmation window
+  const { data: toUpdate, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number')
+    .eq('status', 'approved')
+    .is('confirmed_at', null)
+    .lt('lapse_deadline', now);
+
+  if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+  if (!toUpdate || toUpdate.length === 0) return res.json({ lapsed: 0 });
+
+  const ids = toUpdate.map(r => r.id);
+
+  const { error: updateErr } = await supabase
+    .from('price_requests')
+    .update({ deal_stage: 'lapsed', status: 'lapsed', updated_at: now })
+    .in('id', ids);
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+
+  console.log(`[lapse-check] Lapsed ${ids.length} request(s): ${toUpdate.map(r => r.request_number).join(', ')}`);
+  res.json({ lapsed: ids.length, requests: toUpdate.map(r => r.request_number) });
 });
 
 // ── One-time migration endpoint ───────────────────────────────────────────────

@@ -1,5 +1,11 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "crons": [
+    {
+      "path": "/api/admin/run-lapse-check",
+      "schedule": "0 1 * * *"
+    }
   ]
 }
