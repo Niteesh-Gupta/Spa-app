@@ -337,6 +337,110 @@ app.post('/api/admin/migrate', async (req, res) => {
   }
 });
 
+// ── Admin: bulk import users ──────────────────────────────────────────────────
+// POST /api/admin/import-users
+// Authorization: Bearer <ADMIN_SECRET>
+// Body: [{ name, email, role, zone, manager_email? }, ...]
+// Upserts on email — inserts new users, updates existing ones (never touches password_hash).
+// Returns: { inserted, updated, total }
+app.post('/api/admin/import-users', async (req, res) => {
+  // ── Auth ────────────────────────────────────────────────────────────────────
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured on server' });
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ') || auth.slice(7) !== adminSecret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // ── Validate body ───────────────────────────────────────────────────────────
+  const users = req.body;
+  if (!Array.isArray(users) || users.length === 0) {
+    return res.status(400).json({ error: 'Body must be a non-empty array of users' });
+  }
+
+  const VALID_ROLES = ['TM', 'RSM', 'ZSM', 'NSM', 'CM', 'SC'];
+  const VALID_ZONES = ['North', 'South', 'East', 'West'];
+
+  for (let i = 0; i < users.length; i++) {
+    const u = users[i];
+    if (!u.name || typeof u.name !== 'string') return res.status(400).json({ error: `users[${i}]: name is required` });
+    if (!u.email || typeof u.email !== 'string') return res.status(400).json({ error: `users[${i}]: email is required` });
+    if (!VALID_ROLES.includes(u.role)) return res.status(400).json({ error: `users[${i}]: role must be one of ${VALID_ROLES.join(', ')}` });
+    if (!VALID_ZONES.includes(u.zone)) return res.status(400).json({ error: `users[${i}]: zone must be one of ${VALID_ZONES.join(', ')}` });
+  }
+
+  try {
+    // ── Resolve manager_email → manager_id ──────────────────────────────────
+    const managerEmails = [...new Set(users.map(u => u.manager_email).filter(Boolean))];
+    let managerMap = {};
+    if (managerEmails.length > 0) {
+      const { data: managers, error: mErr } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('email', managerEmails);
+      if (mErr) return res.status(500).json({ error: mErr.message });
+      managerMap = Object.fromEntries((managers || []).map(m => [m.email, m.id]));
+    }
+
+    // ── Find which emails already exist ─────────────────────────────────────
+    const incomingEmails = users.map(u => u.email);
+    const { data: existingRows, error: exErr } = await supabase
+      .from('users')
+      .select('id, email')
+      .in('email', incomingEmails);
+    if (exErr) return res.status(500).json({ error: exErr.message });
+    const existingEmailSet = new Set((existingRows || []).map(r => r.email.toLowerCase()));
+
+    // ── Build insert / update payloads ───────────────────────────────────────
+    const toInsert = [];
+    const toUpdate = [];
+
+    // Default password hash for brand-new accounts — hashed once for the batch
+    let defaultHash = null;
+
+    for (const u of users) {
+      const payload = {
+        name:       u.name.trim(),
+        email:      u.email.trim().toLowerCase(),
+        role:       u.role,
+        zone:       u.zone,
+        manager_id: u.manager_email ? (managerMap[u.manager_email] || null) : null,
+      };
+
+      if (existingEmailSet.has(u.email.trim().toLowerCase())) {
+        toUpdate.push(payload);
+      } else {
+        if (!defaultHash) {
+          defaultHash = await bcrypt.hash('Coloplast@1', 10);
+        }
+        toInsert.push({ ...payload, password_hash: defaultHash });
+      }
+    }
+
+    // ── Execute inserts ──────────────────────────────────────────────────────
+    let insertedCount = 0;
+    if (toInsert.length > 0) {
+      const { error: insErr } = await supabase.from('users').insert(toInsert);
+      if (insErr) return res.status(500).json({ error: `Insert failed: ${insErr.message}` });
+      insertedCount = toInsert.length;
+    }
+
+    // ── Execute updates (one upsert call, conflict on email) ─────────────────
+    let updatedCount = 0;
+    if (toUpdate.length > 0) {
+      const { error: updErr } = await supabase
+        .from('users')
+        .upsert(toUpdate, { onConflict: 'email', ignoreDuplicates: false });
+      if (updErr) return res.status(500).json({ error: `Update failed: ${updErr.message}` });
+      updatedCount = toUpdate.length;
+    }
+
+    res.json({ inserted: insertedCount, updated: updatedCount, total: insertedCount + updatedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
