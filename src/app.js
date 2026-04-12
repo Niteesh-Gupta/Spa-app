@@ -380,12 +380,16 @@ app.patch('/api/requests/:id/confirm', verifyToken, async (req, res) => {
 // POST /api/admin/run-lapse-check
 // Marks approved deals as lapsed when the 14-day confirmation window has expired.
 // Called daily by Vercel Cron (see vercel.json). Also callable manually with ADMIN_SECRET.
+// Auth: Vercel Cron sets x-vercel-cron: 1 (no Bearer needed); manual calls require ADMIN_SECRET.
 app.post('/api/admin/run-lapse-check', async (req, res) => {
-  const adminSecret = process.env.ADMIN_SECRET;
-  if (!adminSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured on server' });
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ') || auth.slice(7) !== adminSecret) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  const isVercelCron = req.headers['x-vercel-cron'] === '1';
+  const adminSecret  = process.env.ADMIN_SECRET;
+  if (!isVercelCron) {
+    if (!adminSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured on server' });
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ') || auth.slice(7) !== adminSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
   }
 
   const now = new Date().toISOString();
