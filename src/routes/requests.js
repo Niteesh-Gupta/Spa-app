@@ -160,7 +160,7 @@ router.patch('/:id', verifyToken, async (req, res) => {
   const updates = {};
   if (req.body.status !== undefined) {
     updates.status = req.body.status;
-    if (req.body.status === 'approved') {
+    if (req.body.status === 'Approved') {
       const now = new Date();
       updates.approved_at    = now.toISOString();
       updates.lapse_deadline = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
@@ -194,7 +194,7 @@ router.patch('/:id/confirm', verifyToken, async (req, res) => {
 
   if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
   if (request.created_by !== req.user.id) return res.status(403).json({ error: 'You can only confirm your own requests' });
-  if (request.status.toLowerCase() !== 'approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+  if (request.status !== 'Approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
   if (request.confirmed_at) return res.status(400).json({ error: 'Request has already been confirmed' });
 
   const confirmedAt       = new Date();
@@ -205,7 +205,7 @@ router.patch('/:id/confirm', verifyToken, async (req, res) => {
     .from('price_requests')
     .update({
       confirmed_at:        confirmedAt.toISOString(),
-      deal_stage:          'confirmed',
+      deal_stage:          'Confirmed',
       validity_expires_at: validityExpiresAt.toISOString(),
       updated_at:          confirmedAt.toISOString(),
     })

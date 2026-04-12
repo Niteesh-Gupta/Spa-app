@@ -46,7 +46,7 @@ router.post('/run-lapse-check', async (req, res) => {
 
   const { error: updateErr } = await supabase
     .from('price_requests')
-    .update({ deal_stage: 'lapsed', status: 'lapsed', updated_at: now })
+    .update({ deal_stage: 'Lapsed', status: 'Lapsed', updated_at: now })
     .in('id', ids);
 
   if (updateErr) return res.status(500).json({ error: updateErr.message });
@@ -149,6 +149,9 @@ router.post('/import-users', async (req, res) => {
 // One-time endpoint to add migration-002 columns to price_requests.
 // Protected by MIGRATION_SECRET header (x-migration-secret).
 router.post('/migrate', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Migrate endpoint is disabled in production' });
+  }
   const secret = process.env.MIGRATION_SECRET;
   if (!secret || req.headers['x-migration-secret'] !== secret) {
     return res.status(403).json({ error: 'Forbidden' });
