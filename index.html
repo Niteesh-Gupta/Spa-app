@@ -262,6 +262,14 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
   .form-grid{grid-template-columns:1fr;}
   .sidebar{display:none;}
 }
+/* ── DEALER AUTOCOMPLETE ── */
+.dealer-ac-wrap{position:relative;}
+.dealer-ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:var(--shadow-md);max-height:200px;overflow-y:auto;z-index:200;display:none;}
+.dealer-ac-list.open{display:block;}
+.dealer-ac-item{padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border2);}
+.dealer-ac-item:last-child{border-bottom:none;}
+.dealer-ac-item:hover,.dealer-ac-item.active{background:var(--blue-l);color:var(--navy2);}
+.dealer-ac-item em{font-style:normal;font-weight:600;color:var(--navy);}
 </style>
 </head>
 <body>
@@ -425,7 +433,10 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
         </div>
         <div class="fg">
           <label class="lbl">Dealer Name <span style="color:var(--red)">*</span></label>
-          <input class="inp" id="f-dealer" placeholder="e.g. Medline Supplies Pvt Ltd">
+          <div class="dealer-ac-wrap">
+            <input class="inp" id="f-dealer" placeholder="Type to search dealers…" autocomplete="off" oninput="onDealerInput(this.value)" onkeydown="onDealerKey(event)">
+            <div class="dealer-ac-list" id="dealer-ac-list"></div>
+          </div>
         </div>
         <div class="fg">
           <label class="lbl">Zone</label>
@@ -667,6 +678,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
 <script>
 // ── GLOBAL ROLE STATE — declared here so both script blocks can access ──
 var _role = null, _name = null, _token = null, _zone = null;
+var _dealers = [];
 const API_BASE = 'https://spa-app-orpin.vercel.app';
 
 // ══════════════════════════════════════════
@@ -1721,6 +1733,68 @@ function populateStatusDropdown(){
   sel.innerHTML = opts.map(v=>`<option value="${v}">${v===''?'All Statuses':v}</option>`).join('');
 }
 
+// ── DEALER AUTOCOMPLETE ──
+var _dealerAcIdx = -1;
+
+async function loadDealers() {
+  try {
+    const res = await fetch(API_BASE + '/api/dealers', {
+      headers: { 'Authorization': 'Bearer ' + _token }
+    });
+    if (res.ok) _dealers = await res.json();
+  } catch(e) {
+    console.warn('Could not load dealers:', e);
+  }
+}
+
+function onDealerInput(val) {
+  _dealerAcIdx = -1;
+  const list = document.getElementById('dealer-ac-list');
+  const q = val.trim().toLowerCase();
+  if (!q || q.length < 2) { list.classList.remove('open'); return; }
+  const matches = _dealers.filter(d => d.name.toLowerCase().includes(q)).slice(0, 20);
+  if (!matches.length) { list.classList.remove('open'); return; }
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  list.innerHTML = matches.map((d, i) =>
+    `<div class="dealer-ac-item" data-name="${d.name.replace(/"/g,'&quot;')}" onmousedown="selectDealer(this.dataset.name)">${d.name.replace(re, '<em>$1</em>')}</div>`
+  ).join('');
+  list.classList.add('open');
+}
+
+function onDealerKey(e) {
+  const list = document.getElementById('dealer-ac-list');
+  const items = list.querySelectorAll('.dealer-ac-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _dealerAcIdx = Math.min(_dealerAcIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _dealerAcIdx = Math.max(_dealerAcIdx - 1, 0);
+  } else if (e.key === 'Enter' && _dealerAcIdx >= 0) {
+    e.preventDefault();
+    selectDealer(items[_dealerAcIdx].dataset.name);
+    return;
+  } else if (e.key === 'Escape') {
+    list.classList.remove('open'); return;
+  } else { return; }
+  items.forEach((el, i) => el.classList.toggle('active', i === _dealerAcIdx));
+  items[_dealerAcIdx] && items[_dealerAcIdx].scrollIntoView({ block: 'nearest' });
+}
+
+function selectDealer(name) {
+  document.getElementById('f-dealer').value = name;
+  document.getElementById('dealer-ac-list').classList.remove('open');
+  _dealerAcIdx = -1;
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dealer-ac-wrap')) {
+    var list = document.getElementById('dealer-ac-list');
+    if (list) list.classList.remove('open');
+  }
+});
+
 // ── ENTER APP ──
 function enterApp() {
   if (!_role) return;
@@ -1760,6 +1834,7 @@ function enterApp() {
 
   // Fetch real request data from Supabase (updates stats + tables)
   loadRequests();
+  loadDealers();
 }
 
 // ── LOGOUT ──

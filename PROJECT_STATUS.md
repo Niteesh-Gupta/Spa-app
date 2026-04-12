@@ -52,7 +52,7 @@ Phase 2 start — v4_migration.sql connection issue (run manually via Supabase S
 - [x] _zone session restore fixed (survives page refresh)
 - [x] f-zone null reference removed from TM form
 - [x] /api/admin/migrate disabled in production (403)
-- [ ] Dealer autocomplete from DB (306 dealers)
+- [x] Dealer autocomplete from DB (306 dealers)
 - [ ] Hospital free-text → lookup
 - [ ] Audit trail for all status changes
 - [ ] Frontend split (css/js separation)

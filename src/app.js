@@ -9,6 +9,7 @@ const cors    = require('cors');
 const authRouter     = require('./routes/auth');
 const requestsRouter = require('./routes/requests');
 const adminRouter    = require('./routes/admin');
+const dealersRouter  = require('./routes/dealers');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api',          authRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/admin',    adminRouter);
+app.use('/api/dealers',  dealersRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {
