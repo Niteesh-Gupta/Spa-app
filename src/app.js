@@ -427,13 +427,20 @@ app.post('/api/admin/import-users', async (req, res) => {
       insertedCount = toInsert.length;
     }
 
-    // ── Execute updates (one upsert call, conflict on email) ─────────────────
+    // ── Execute updates — use .update().eq() to never touch password_hash ──────
+    // Cannot use upsert here: the INSERT half of INSERT...ON CONFLICT fails the
+    // NOT NULL constraint on password_hash before conflict detection fires.
     let updatedCount = 0;
     if (toUpdate.length > 0) {
-      const { error: updErr } = await supabase
-        .from('users')
-        .upsert(toUpdate, { onConflict: 'email', ignoreDuplicates: false });
-      if (updErr) return res.status(500).json({ error: `Update failed: ${updErr.message}` });
+      const results = await Promise.all(
+        toUpdate.map(p =>
+          supabase.from('users')
+            .update({ name: p.name, role: p.role, zone: p.zone, manager_id: p.manager_id })
+            .eq('email', p.email)
+        )
+      );
+      const failed = results.find(r => r.error);
+      if (failed) return res.status(500).json({ error: `Update failed: ${failed.error.message}` });
       updatedCount = toUpdate.length;
     }
 
