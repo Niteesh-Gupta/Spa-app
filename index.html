@@ -1564,7 +1564,7 @@ function openDetail(id){
   // Build SKU table HTML for multi-SKU requests
   const skuTableHTML = (r.skus && r.skus.length>0) ?
     '<div class="sec-div">Product Lines</div>'+
-    '<div style="overflow-x:auto;margin-bottom:16px;">'+
+    '<div style="overflow-x:auto;overflow-y:auto;max-height:280px;margin-bottom:16px;">'+
     '<table style="width:100%;border-collapse:collapse;font-size:11px;min-width:800px;">'+
     '<thead><tr style="background:var(--bg);border-bottom:2px solid var(--border);">'+
     '<th style="padding:7px 6px;text-align:left;">#</th>'+
@@ -1602,7 +1602,7 @@ function openDetail(id){
   document.getElementById('det-body').innerHTML=`
     <div class="detail-grid">
       <div class="dg-item"><div class="dg-label">Customer / Hospital</div><div class="dg-val">${r.customer}</div></div>
-      <div class="dg-item"><div class="dg-label">Dealer</div><div class="dg-val">${r.dealer||r.product||'—'}</div></div>
+      <div class="dg-item"><div class="dg-label">Dealer</div><div class="dg-val">${r.dealer||'—'}</div></div>
       <div class="dg-item"><div class="dg-label">Territory Manager</div><div class="dg-val">${r.tm}</div></div>
       <div class="dg-item"><div class="dg-label">Deal Stage</div><div class="dg-val">${stageBadge(r.dealStage)}</div></div>
       <div class="dg-item"><div class="dg-label">SDR%</div><div class="dg-val"><strong class="disc-pill ${discClass(sdrVal)}" style="font-size:13px;">${sdrVal?sdrVal.toFixed(1)+'%':'—'}</strong></div></div>
