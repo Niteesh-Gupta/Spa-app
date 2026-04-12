@@ -131,49 +131,51 @@ function jsToDb(obj, userId) {
 
 // ── Visibility helper ─────────────────────────────────────────────────────────
 //
-// Hierarchy:  TM → RSM (same region) → ZSM (same zone) → NSM → CM
+// Hierarchy (zone-based):
 //
-//   TM / TENDER_MANAGER : own requests only
-//   RSM                 : own + all TMs sharing the same zone + region
-//   ZSM                 : all TMs and RSMs in the same zone
-//   NSM / CM            : all requests, all zones
-//   SUPPLY_CHAIN        : ACTIVE_CONTRACT requests with discount_percent > 35
-//   FINANCE / ADMIN     : all requests
+//   TM           : own requests only
+//   RSM          : all TM requests in the same zone
+//   ZSM          : all TM + RSM requests in the same zone
+//   NSM / CM     : all requests, all zones
+//   SC           : ACTIVE_CONTRACT requests with discount_percent > 35
 //
-// zone and region come from the JWT (set at login from users table).
+// Notes:
+//   - West ZSM is vacant; West RSMs report to NSM directly. RSM zone filter
+//     still works correctly — they see West TM requests as normal.
+//   - East ZSM (insdc@coloplast.com) has dual RSM/ZSM role; stored as ZSM
+//     in DB so ZSM filter applies.
+//   - zone comes from the JWT (set at login from users table).
 // ─────────────────────────────────────────────────────────────────────────────
 async function buildVisibilityFilter(user) {
-  const { role, id: userId, zone, region } = user;
+  const { role, id: userId, zone } = user;
 
-  // Roles that see everything
+  // NSM / CM — see all requests across all zones
   if (['NSM', 'CM', 'FINANCE', 'ADMIN'].includes(role)) {
     return { filter: null, supplyChainOnly: false };
   }
 
-  // Supply Chain: approved deals above threshold only
-  if (role === 'SUPPLY_CHAIN') {
+  // SC — approved contracts above discount threshold only
+  if (role === 'SC' || role === 'SUPPLY_CHAIN') {
     return { filter: null, supplyChainOnly: true };
   }
 
-  // TM / TENDER_MANAGER: own requests only
+  // TM — own requests only
   if (role === 'TM' || role === 'TENDER_MANAGER') {
     return { filter: { column: 'created_by', op: 'eq', value: userId }, supplyChainOnly: false };
   }
 
-  // RSM: own requests + TMs in the same region
+  // RSM — all TM requests in their zone
   if (role === 'RSM') {
-    const { data: peers } = await supabase
+    const { data: tms } = await supabase
       .from('users')
       .select('id')
       .eq('zone', zone)
-      .eq('region', region)
-      .in('role', ['TM', 'RSM']);
-    const ids = (peers || []).map(u => u.id);
-    if (!ids.includes(userId)) ids.push(userId);
+      .eq('role', 'TM');
+    const ids = (tms || []).map(u => u.id);
     return { filter: { column: 'created_by', op: 'in', value: ids }, supplyChainOnly: false };
   }
 
-  // ZSM: all TMs and RSMs in the same zone
+  // ZSM — all TM and RSM requests in their zone
   if (role === 'ZSM') {
     const { data: zoneUsers } = await supabase
       .from('users')
