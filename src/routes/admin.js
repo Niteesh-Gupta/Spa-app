@@ -167,6 +167,7 @@ router.post('/migrate', async (req, res) => {
         ADD COLUMN IF NOT EXISTS date              TEXT,
         ADD COLUMN IF NOT EXISTS tm_name           TEXT,
         ADD COLUMN IF NOT EXISTS dealer_name       TEXT,
+        ADD COLUMN IF NOT EXISTS dealer_id         UUID REFERENCES dealers(id),
         ADD COLUMN IF NOT EXISTS skus              JSONB,
         ADD COLUMN IF NOT EXISTS dealer_margin     NUMERIC,
         ADD COLUMN IF NOT EXISTS realisation       NUMERIC,

@@ -434,6 +434,7 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
           <label class="lbl">Dealer Name <span style="color:var(--red)">*</span></label>
           <div class="dealer-ac-wrap">
             <input class="inp" id="f-dealer" placeholder="Type to search dealers…" autocomplete="off" oninput="onDealerInput(this.value)" onkeydown="onDealerKey(event)">
+            <input type="hidden" id="f-dealer-id">
             <div class="dealer-ac-list" id="dealer-ac-list"></div>
           </div>
         </div>
@@ -1109,6 +1110,7 @@ function initForm(){
       document.getElementById('f-tm').value = (prev&&prev.tm)||'';
       document.getElementById('f-customer').value = (prev&&prev.customer)||'';
       document.getElementById('f-dealer').value = (prev&&prev.dealer)||'';
+      document.getElementById('f-dealer-id').value = (prev&&prev.dealerId)||'';
       document.getElementById('f-just').value = '';
       onTMChange();
     },50);
@@ -1116,7 +1118,7 @@ function initForm(){
     document.getElementById('form-page-title').textContent='New Price Approval Request';
     document.getElementById('form-page-sub').textContent='Submit for multi-level approval based on SDR%';
     document.getElementById('reraise-notice').style.display='none';
-    ['f-customer','f-dealer','f-validity','f-npd','f-surgeries','f-just'].forEach(id=>{
+    ['f-customer','f-dealer','f-dealer-id','f-validity','f-npd','f-surgeries','f-just'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
     });
     document.getElementById('extra-info-section').style.display='none';
@@ -1346,12 +1348,14 @@ async function submitRequest(){
   const tm=document.getElementById('f-tm').value;
   const cust=document.getElementById('f-customer').value.trim();
   const dealer=document.getElementById('f-dealer').value.trim();
+  const dealerId=document.getElementById('f-dealer-id').value.trim();
   const just=document.getElementById('f-just').value.trim();
   const stage=document.getElementById('f-stage').value;
   const validityDays=parseInt(document.getElementById('f-validity').value,10);
 
   if(!cust){showToast('Hospital / Account Name is required','e');return;}
   if(!dealer){showToast('Dealer Name is required','e');return;}
+  if(!dealerId){showToast('Please select a dealer from the dropdown','e');return;}
   if(!just){showToast('Remarks / Justification is required','e');return;}
   if(!validityDays||validityDays<1||validityDays>365){showToast('Validity Period must be between 1 and 365 days','e');return;}
   if(skuRows.length===0){showToast('Add at least one product row','e');return;}
@@ -1384,7 +1388,7 @@ async function submitRequest(){
   // id is intentionally omitted — server generates request_number from DB max
   const newReq = {
     date:new Date().toISOString().split('T')[0],
-    tm, customer:cust, dealer,
+    tm, customer:cust, dealer, dealerId,
     product:skuLabel,
     skus:skuRows.filter(r=>r.code).map(r=>Object.assign({},r)),
     stdPrice:validRows[0]?validRows[0].mrp:0,
@@ -1790,14 +1794,15 @@ async function loadDealers() {
 
 function onDealerInput(val) {
   _dealerAcIdx = -1;
+  document.getElementById('f-dealer-id').value = '';
   const list = document.getElementById('dealer-ac-list');
   const q = val.trim().toLowerCase();
   if (!q || q.length < 2) { list.classList.remove('open'); return; }
   const matches = _dealers.filter(d => d.name.toLowerCase().includes(q)).slice(0, 20);
   if (!matches.length) { list.classList.remove('open'); return; }
   const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-  list.innerHTML = matches.map((d, i) =>
-    `<div class="dealer-ac-item" data-name="${d.name.replace(/"/g,'&quot;')}" onmousedown="selectDealer(this.dataset.name)">${d.name.replace(re, '<em>$1</em>')}</div>`
+  list.innerHTML = matches.map(d =>
+    `<div class="dealer-ac-item" data-id="${d.id}" data-name="${d.name.replace(/"/g,'&quot;')}" onmousedown="selectDealer(this.dataset.id,this.dataset.name)">${d.name.replace(re, '<em>$1</em>')}</div>`
   ).join('');
   list.classList.add('open');
 }
@@ -1814,7 +1819,7 @@ function onDealerKey(e) {
     _dealerAcIdx = Math.max(_dealerAcIdx - 1, 0);
   } else if (e.key === 'Enter' && _dealerAcIdx >= 0) {
     e.preventDefault();
-    selectDealer(items[_dealerAcIdx].dataset.name);
+    selectDealer(items[_dealerAcIdx].dataset.id, items[_dealerAcIdx].dataset.name);
     return;
   } else if (e.key === 'Escape') {
     list.classList.remove('open'); return;
@@ -1823,8 +1828,9 @@ function onDealerKey(e) {
   items[_dealerAcIdx] && items[_dealerAcIdx].scrollIntoView({ block: 'nearest' });
 }
 
-function selectDealer(name) {
+function selectDealer(id, name) {
   document.getElementById('f-dealer').value = name;
+  document.getElementById('f-dealer-id').value = id;
   document.getElementById('dealer-ac-list').classList.remove('open');
   _dealerAcIdx = -1;
 }

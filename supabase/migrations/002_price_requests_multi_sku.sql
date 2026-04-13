@@ -7,6 +7,7 @@ ALTER TABLE price_requests
   ADD COLUMN IF NOT EXISTS date            TEXT,
   ADD COLUMN IF NOT EXISTS tm_name         TEXT,
   ADD COLUMN IF NOT EXISTS dealer_name     TEXT,
+  ADD COLUMN IF NOT EXISTS dealer_id       UUID REFERENCES dealers(id),
   ADD COLUMN IF NOT EXISTS skus            JSONB,
   ADD COLUMN IF NOT EXISTS dealer_margin   NUMERIC(8,4),
   ADD COLUMN IF NOT EXISTS realisation     NUMERIC(12,4),
