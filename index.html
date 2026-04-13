@@ -1025,7 +1025,7 @@ function renderDash(){
         <button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">View</button>
         ${canAct?`<button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
         <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>`:''}
-        ${_role==='TM'&&(r.status==='Rejected'||r.status==='Hospital Declined')&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
+        ${_role==='TM'&&['Rejected','Lapsed','Hospital Declined','Expired'].includes(r.status)&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
         ${_role==='TM'&&r.status==='Approved'&&r.dealStage!=='Confirmed'&&r.dealStage!=='Lapsed'?`<button class="btn btn-green btn-xs" onclick="confirmDeal('${r.id}')">✓ Hospital Accepted</button><button class="btn btn-red btn-xs" onclick="declineDeal('${r.id}')">✕ Hospital Declined</button>`:''}
       </td>
     </tr>`;
@@ -1099,20 +1099,31 @@ function initForm(){
 
   if(reraiseFrom){
     const prev = requests.find(r=>r.id===reraiseFrom);
+    const prevStatus = prev ? prev.status : 'previous';
     document.getElementById('form-page-title').textContent='Re-raise Price Request';
-    document.getElementById('form-page-sub').textContent='Linked to rejected request '+reraiseFrom;
+    document.getElementById('form-page-sub').textContent='Linked to '+prevStatus+' request '+reraiseFrom;
     const notice = document.getElementById('reraise-notice');
     notice.style.display='block';
     document.getElementById('reraise-notice-body').innerHTML=
       '<strong>Previous Request:</strong> '+reraiseFrom+' | '+(prev?prev.customer:'')+'<br>'+
-      '<strong>Rejection reason carried forward — please revise pricing and justification.</strong>';
+      '<strong>Status was '+prevStatus+' — revise pricing or justification as needed before submitting.</strong>';
     setTimeout(()=>{
       document.getElementById('f-tm').value = (prev&&prev.tm)||'';
       document.getElementById('f-customer').value = (prev&&prev.customer)||'';
       document.getElementById('f-dealer').value = (prev&&prev.dealer)||'';
       document.getElementById('f-dealer-id').value = (prev&&prev.dealerId)||'';
-      document.getElementById('f-just').value = '';
+      document.getElementById('f-validity').value = (prev&&prev.validityDays)||'';
+      document.getElementById('f-just').value = (prev&&prev.justification)||'';
+      const stageEl = document.getElementById('f-stage');
+      if(stageEl && prev&&prev.dealStage) stageEl.value = prev.dealStage;
+      // Restore SKU rows from original request
+      if(prev&&prev.skus&&prev.skus.length>0){
+        skuRows = prev.skus.map(s=>Object.assign({},s,{id:Math.random().toString(36).slice(2)}));
+      } else {
+        skuRows = [];
+      }
       onTMChange();
+      renderSKUTable();
     },50);
   } else {
     document.getElementById('form-page-title').textContent='New Price Approval Request';
@@ -1649,7 +1660,7 @@ function openDetail(id){
   const myTier      = _role && _role!=='TM' && _role!=='SC';
   const canAct      = myTier && r.status===`Pending ${_role}`;
   const canConfirm  = _role==='TM' && r.status==='Approved' && r.tm===_name && !r.confirmedAt;
-  const canReraise  = _role==='TM' && (r.status==='Rejected'||r.status==='Hospital Declined') && r.tm===_name && !reraised;
+  const canReraise  = _role==='TM' && ['Rejected','Lapsed','Hospital Declined','Expired'].includes(r.status) && r.tm===_name && !reraised;
 
   if(canAct){
     ft.innerHTML=`

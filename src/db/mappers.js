@@ -73,6 +73,7 @@ function dbToJs(row) {
     status:             row.status,
     tier:               row.current_approver_role,
     linkedTo:           row.linked_to,
+    reRaisedFrom:       row.re_raised_from,
     extraInfo:          row.extra_info,
     npd:                row.npd,
   };
@@ -102,6 +103,7 @@ function jsToDb(obj, userId) {
     status:                obj.status,
     current_approver_role: obj.tier,
     linked_to:             obj.linkedTo        || null,
+    re_raised_from:        obj.linkedTo        || null,
     extra_info:            obj.extraInfo       || null,
     npd:                   obj.npd             || null,
   };
