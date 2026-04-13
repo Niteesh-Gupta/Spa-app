@@ -1025,8 +1025,8 @@ function renderDash(){
         <button class="btn btn-ghost btn-xs" onclick="openDetail('${r.id}')">View</button>
         ${canAct?`<button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
         <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>`:''}
-        ${_role==='TM'&&r.status==='Rejected'&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
-        ${_role==='TM'&&r.status==='Approved'&&r.dealStage!=='Confirmed'&&r.dealStage!=='Lapsed'?`<button class="btn btn-green btn-xs" onclick="confirmDeal('${r.id}')">✓ Confirm Deal</button>`:''}
+        ${_role==='TM'&&(r.status==='Rejected'||r.status==='Hospital Declined')&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
+        ${_role==='TM'&&r.status==='Approved'&&r.dealStage!=='Confirmed'&&r.dealStage!=='Lapsed'?`<button class="btn btn-green btn-xs" onclick="confirmDeal('${r.id}')">✓ Hospital Accepted</button><button class="btn btn-red btn-xs" onclick="declineDeal('${r.id}')">✕ Hospital Declined</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -1494,10 +1494,31 @@ async function confirmDeal(id){
     const updated=await res.json();
     const idx=requests.findIndex(x=>x.id===id);
     if(idx!==-1) requests[idx]=updated;
-    showToast(id+' confirmed — validity clock started','s');
+    showToast(id+' — Hospital Accepted. Deal is now Active, validity clock started.','s');
     renderDash(); renderAll(); updateBadge();
   }catch(e){
     showToast('Network error — could not confirm deal','e');
+  }
+}
+
+async function declineDeal(id){
+  try{
+    const res=await fetch(API_BASE+'/api/requests/'+id+'/decline',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token}
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({error:'HTTP '+res.status}));
+      showToast('Could not decline: '+(err.error||res.status),'e');
+      return;
+    }
+    const updated=await res.json();
+    const idx=requests.findIndex(x=>x.id===id);
+    if(idx!==-1) requests[idx]=updated;
+    showToast(id+' — Hospital Declined. You can re-raise if needed.','w');
+    renderDash(); renderAll(); updateBadge();
+  }catch(e){
+    showToast('Network error — could not decline deal','e');
   }
 }
 
@@ -1625,15 +1646,21 @@ function openDetail(id){
   `;
 
   const ft=document.getElementById('det-ft');
-  const myTier    = _role && _role!=='TM' && _role!=='SC';
-  const canAct    = myTier && r.status===`Pending ${_role}`;
-  const canReraise= _role==='TM' && r.status==='Rejected' && r.tm===_name && !reraised;
+  const myTier      = _role && _role!=='TM' && _role!=='SC';
+  const canAct      = myTier && r.status===`Pending ${_role}`;
+  const canConfirm  = _role==='TM' && r.status==='Approved' && r.tm===_name && !r.confirmedAt;
+  const canReraise  = _role==='TM' && (r.status==='Rejected'||r.status==='Hospital Declined') && r.tm===_name && !reraised;
 
   if(canAct){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <button class="btn btn-red btn-sm" onclick="rejectRequest('${r.id}');closeModal();renderDash();">✕ Reject</button>
       <button class="btn btn-green btn-sm" onclick="advanceStatus('${r.id}');closeModal();renderDash();">✓ Approve</button>`;
+  } else if(canConfirm){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-red btn-sm" onclick="declineDeal('${r.id}');closeModal();">✕ Hospital Declined</button>
+      <button class="btn btn-green btn-sm" onclick="confirmDeal('${r.id}');closeModal();">✓ Hospital Accepted</button>`;
   } else if(canReraise){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>

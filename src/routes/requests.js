@@ -216,10 +216,43 @@ router.patch('/:id/confirm', verifyToken, async (req, res) => {
   const { data, error: updateErr } = await supabase
     .from('price_requests')
     .update({
+      status:              'Active',
       confirmed_at:        confirmedAt.toISOString(),
       deal_stage:          'Confirmed',
       validity_expires_at: validityExpiresAt.toISOString(),
       updated_at:          confirmedAt.toISOString(),
+    })
+    .eq('request_number', id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json(dbToJs(data));
+});
+
+// PATCH /api/requests/:id/decline — TM marks hospital as having declined the deal
+router.patch('/:id/decline', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (req.user.role !== 'TM') {
+    return res.status(403).json({ error: 'Only a TM can decline a deal' });
+  }
+
+  const { data: request, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number, status, created_by')
+    .eq('request_number', id)
+    .single();
+
+  if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
+  if (request.created_by !== req.user.id) return res.status(403).json({ error: 'You can only decline your own requests' });
+  if (request.status !== 'Approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+
+  const { data, error: updateErr } = await supabase
+    .from('price_requests')
+    .update({
+      status:     'Hospital Declined',
+      updated_at: new Date().toISOString(),
     })
     .eq('request_number', id)
     .select()
