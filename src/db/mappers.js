@@ -103,7 +103,6 @@ function jsToDb(obj, userId) {
     status:                obj.status,
     current_approver_role: obj.tier,
     linked_to:             obj.linkedTo        || null,
-    re_raised_from:        obj.linkedTo        || null,
     extra_info:            obj.extraInfo       || null,
     npd:                   obj.npd             || null,
   };

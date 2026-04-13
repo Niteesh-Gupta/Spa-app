@@ -135,6 +135,16 @@ router.post('/', verifyToken, async (req, res) => {
   const row = jsToDb(req.body, req.user.id);
   row.request_number = 'SPA-' + String(maxNum + 1).padStart(3, '0');
 
+  // If this is a re-raise, resolve the original's UUID for the re_raised_from FK.
+  if (row.linked_to) {
+    const { data: orig } = await supabase
+      .from('price_requests')
+      .select('id')
+      .eq('request_number', row.linked_to)
+      .single();
+    if (orig) row.re_raised_from = orig.id;
+  }
+
   let { data, error } = await supabase.from('price_requests').insert([row]).select().single();
 
   // Migration 002 not yet applied — retry with only the base columns that exist.
