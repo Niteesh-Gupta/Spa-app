@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA System — Master Logic Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #171717;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #e8e6e0;
+    --muted: #7a7770;
+    --accent: #c8a96e;
+    --accent2: #8fb89a;
+    --danger: #c47a6a;
+    --info: #6a9fc4;
+    --warn: #c4a96a;
+    --green: #6aad7e;
+    --red: #c47a6a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 0 0 80px;
+  }
+
+  .hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 48px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'SPA';
+    position: absolute;
+    right: -20px;
+    top: -30px;
+    font-family: var(--serif);
+    font-size: 200px;
+    font-weight: 700;
+    color: #ffffff06;
+    letter-spacing: -8px;
+    pointer-events: none;
+  }
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: .15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .meta-chip span { color: var(--text); }
+
+  .content { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+
+  /* Section headers */
+  .section {
+    margin-top: 48px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: .12em;
+    min-width: 28px;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Status badges */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .badge-done { background: #1a3326; color: var(--green); border: 1px solid #2a5040; }
+  .badge-partial { background: #2e2618; color: var(--warn); border: 1px solid #4a3e22; }
+  .badge-todo { background: #1e1e1e; color: var(--muted); border: 1px solid var(--border2); }
+  .badge-bug { background: #2e1a18; color: var(--red); border: 1px solid #4a2a22; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border2);
+    font-weight: 500;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .flow-step {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .flow-arrow { color: var(--muted); font-size: 14px; }
+  .flow-step.active { border-color: var(--accent); color: var(--accent); }
+  .flow-step.done { border-color: var(--green); color: var(--green); background: #1a2e20; }
+  .flow-step.warn { border-color: var(--warn); color: var(--warn); background: #2a2010; }
+  .flow-step.red { border-color: var(--red); color: var(--red); background: #2a1410; }
+
+  /* Logic rule blocks */
+  .rule-block {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .rule-block.green { border-left-color: var(--green); }
+  .rule-block.red { border-left-color: var(--red); }
+  .rule-block.blue { border-left-color: var(--info); }
+  .rule-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  /* Progress tracker */
+  .progress-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-row:last-child { border-bottom: none; }
+  .progress-icon { font-size: 16px; min-width: 20px; margin-top: 1px; }
+  .progress-content { flex: 1; }
+  .progress-title { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .progress-detail { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* Discount tier table highlight */
+  .tier-rsm { color: var(--green); }
+  .tier-zsm { color: var(--info); }
+  .tier-nsm { color: var(--warn); }
+  .tier-cm { color: var(--red); }
+
+  .note {
+    background: #1e1a0e;
+    border: 1px solid #3a3010;
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 11px;
+    color: var(--warn);
+    margin-top: 12px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  code {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 32px 20px 24px; }
+    .content { padding: 0 16px; }
+    .two-col { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-label">Coloplast India · Sales Operations</div>
+  <h1>Special Price Approval<br>System — Master Logic</h1>
+  <div class="hero-sub">Complete workflow logic, build status, and open decisions</div>
+  <div class="hero-meta">
+    <div class="meta-chip">Version <span>v4.0 (in progress)</span></div>
+    <div class="meta-chip">Live URL <span>spa-app-orpin.vercel.app</span></div>
+    <div class="meta-chip">Stack <span>Vercel · Supabase · Node.js · JWT</span></div>
+    <div class="meta-chip">Last updated <span>April 2026</span></div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ─── SECTION 1: ROLES ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">Roles & Hierarchy</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Count (India)</th>
+          <th>What they do in SPA</th>
+          <th>Visibility</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Territory Manager (TM)</strong></td>
+          <td>54</td>
+          <td>Create, submit, confirm/reject deal, re-raise</td>
+          <td>Own requests only</td>
+        </tr>
+        <tr>
+          <td><strong>RSM</strong></td>
+          <td>11</td>
+          <td>Approve requests ≤15% discount from their TMs</td>
+          <td>All requests from their region TMs</td>
+        </tr>
+        <tr>
+          <td><strong>ZSM</strong></td>
+          <td>4</td>
+          <td>Approve requests 15–30% discount from their zone</td>
+          <td>All requests from their zone</td>
+        </tr>
+        <tr>
+          <td><strong>NSM</strong></td>
+          <td>1</td>
+          <td>Approve requests 30–40% discount nationally</td>
+          <td>All India requests</td>
+        </tr>
+        <tr>
+          <td><strong>Country Manager (CM)</strong></td>
+          <td>1</td>
+          <td>Approve requests &gt;40% discount</td>
+          <td>All India requests</td>
+        </tr>
+        <tr>
+          <td><strong>Supply Chain (SC)</strong></td>
+          <td>1–2</td>
+          <td>Feasibility check — parallel to or after approval</td>
+          <td>Only Approved/Active requests</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">⚠ West ZSM position is vacant. Escalation rule: West zone requests escalate directly to NSM until filled.</div>
+  </div>
+
+  <!-- ─── SECTION 2: APPROVAL LOGIC ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">Approval Routing Logic (Discount Tiers)</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>SDR% (Discount)</th>
+          <th>Who Approves</th>
+          <th>Who Can See</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tier-rsm">≤ 15%</td>
+          <td class="tier-rsm">RSM (final approver)</td>
+          <td>RSM, ZSM, NSM, CM</td>
+          <td><span class="badge badge-done">Built</span></td>
+        </tr>
+        <tr>
+          <td class="tier-zsm">&gt;15% – ≤30%</td>
+          <td class="tier-zsm">ZSM (final approver)</td>
+          <td>RSM (read), ZSM, NSM, CM</td>
+          <td><span class="badge badge-done">Built</span></td>
+        </tr>
+        <tr>
+          <td class="tier-nsm">&gt;30% – ≤40%</td>
+          <td class="tier-nsm">NSM (final approver)</td>
+          <td>RSM, ZSM (read), NSM, CM</td>
+          <td><span class="badge badge-done">Built</span></td>
+        </tr>
+        <tr>
+          <td class="tier-cm">&gt;40%</td>
+          <td class="tier-cm">Country Manager (final approver)</td>
+          <td>RSM, ZSM, NSM (read), CM</td>
+          <td><span class="badge badge-done">Built</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">Note: "Read" means visible on dashboard but cannot approve/reject. Only the designated approver for that tier can act.</div>
+  </div>
+
+  <!-- ─── SECTION 3: COMPLETE WORKFLOW ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">Complete Request Lifecycle</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Status Flow</div>
+      <div class="flow">
+        <div class="flow-step done">Draft</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step done">Pending Approval</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step done">Approved</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step warn">Pending Confirmation</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step active">Active</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step red">Expired</div>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <div class="flow-step done">Pending Approval</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step red">Rejected</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step warn">Re-Raised (new request)</div>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <div class="flow-step done">Approved</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step red">Lapsed (no confirmation in 14 days)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step warn">Re-Raise possible</div>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <div class="flow-step done">Active</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step red">Hospital Declined</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step warn">Re-Raise possible</div>
+      </div>
+    </div>
+
+    <!-- Step by step -->
+    <div class="rule-block">
+      <div class="rule-label">Step 1 — TM submits request</div>
+      TM fills: Hospital/Dealer name (dropdown from DB), SKU(s), current price, requested price, SDR%, deal stage (Quotation / Negotiation / Closure), validity in days (max 365), and justification note.
+    </div>
+
+    <div class="rule-block blue">
+      <div class="rule-label">Step 2 — System routes to correct approver</div>
+      Based on SDR%, system auto-assigns to RSM / ZSM / NSM / CM. TM cannot choose approver. Request appears in approver's queue.
+    </div>
+
+    <div class="rule-block green">
+      <div class="rule-label">Step 3A — Approver APPROVES</div>
+      Status → <code>Approved</code>. TM receives notification. A 14-day confirmation window opens. Clock starts from approval date.
+    </div>
+
+    <div class="rule-block red">
+      <div class="rule-label">Step 3B — Approver REJECTS</div>
+      Approver must enter rejection reason. Status → <code>Rejected</code>. TM sees reason. TM can re-raise with one click — creates a new linked request (pre-filled), original stays as <code>Rejected</code> in DB forever.
+    </div>
+
+    <div class="rule-block green">
+      <div class="rule-label">Step 4A — TM confirms "Hospital Accepted" (within 14 days)</div>
+      TM confirms hospital has accepted the rate. Status → <code>Active</code>. Validity clock starts from this confirmation date (not from approval date). Record stored in DB as an active deal.
+    </div>
+
+    <div class="rule-block red">
+      <div class="rule-label">Step 4B — TM confirms "Hospital Declined"</div>
+      Hospital did not accept the approved rate. Status → <code>Hospital Declined</code>. Record stays in DB (audit trail). TM can re-raise with modified pricing — new linked request created.
+    </div>
+
+    <div class="rule-block red">
+      <div class="rule-label">Step 4C — TM does nothing for 14 days</div>
+      System auto-lapses. Status → <code>Lapsed</code>. No deal happened. Record stays in DB. TM can still re-raise if needed.
+    </div>
+
+    <div class="rule-block warn">
+      <div class="rule-label">Step 5 — Active deal: validity running</div>
+      Status = <code>Active</code>. Validity_expires_at = confirmed_at + validity_days. TM dashboard shows days remaining. Alert sent when &lt;14 days remaining.
+    </div>
+
+    <div class="rule-block red">
+      <div class="rule-label">Step 6 — Validity expires</div>
+      System auto-sets status → <code>Expired</code>. TM receives alert. TM can re-raise with one click. New request created, linked to original via <code>re_raised_from</code> field.
+    </div>
+  </div>
+
+  <!-- ─── SECTION 4: RE-RAISE LOGIC ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">Re-Raise Logic</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">When can TM re-raise?</div>
+        <div class="rule-block red" style="margin-bottom:6px">
+          <div class="rule-label">Trigger</div>Request was Rejected by approver
+        </div>
+        <div class="rule-block red" style="margin-bottom:6px">
+          <div class="rule-label">Trigger</div>Approval Lapsed (no confirmation in 14 days)
+        </div>
+        <div class="rule-block red" style="margin-bottom:6px">
+          <div class="rule-label">Trigger</div>Hospital Declined the approved rate
+        </div>
+        <div class="rule-block red">
+          <div class="rule-label">Trigger</div>Deal Expired (validity period ended)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">How re-raise works</div>
+        <div style="font-size:12px; color: var(--text); line-height:1.8;">
+          1. TM clicks "Re-Raise" on original request<br>
+          2. New request form opens — pre-filled with all original data<br>
+          3. TM can modify: price, SDR%, validity, justification<br>
+          4. New request gets a new SPA number<br>
+          5. New request has <code>re_raised_from = original_request_id</code><br>
+          6. Original request remains in DB unchanged<br>
+          7. New request goes through full approval flow again
+        </div>
+      </div>
+    </div>
+
+    <div class="note">⚠ Original records are NEVER deleted. Every request lives in the DB regardless of status. This is the audit trail. Re-raised requests are new records linked to the original.</div>
+  </div>
+
+  <!-- ─── SECTION 5: VALIDITY LOGIC ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">Validity & Timeline Logic</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Set by</th>
+          <th>Rule</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>validity_days</code></td>
+          <td>TM (at submission)</td>
+          <td>Min: 1 day. Max: 365 days. Required field.</td>
+        </tr>
+        <tr>
+          <td><code>lapse_deadline</code></td>
+          <td>System (on approval)</td>
+          <td>approved_at + 14 days. TM must confirm within this window or request auto-lapses.</td>
+        </tr>
+        <tr>
+          <td><code>confirmed_at</code></td>
+          <td>TM (deal confirmation)</td>
+          <td>Date TM confirms hospital accepted. Validity clock starts here.</td>
+        </tr>
+        <tr>
+          <td><code>validity_expires_at</code></td>
+          <td>System (on confirmation)</td>
+          <td>confirmed_at + validity_days</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── SECTION 6: DATABASE ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">Database — What's In Supabase</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Tables</div>
+        <table>
+          <thead><tr><th>Table</th><th>Records</th></tr></thead>
+          <tbody>
+            <tr><td><code>users</code></td><td>74 (all India, real)</td></tr>
+            <tr><td><code>dealers</code></td><td>306 (hospital/dealer list)</td></tr>
+            <tr><td><code>price_requests</code></td><td>Main requests table</td></tr>
+            <tr><td><code>request_items</code></td><td>SKU line items per request</td></tr>
+            <tr><td><code>escalation_rules</code></td><td>4 rules (West vacancy etc.)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">Key columns on price_requests</div>
+        <table>
+          <thead><tr><th>Column</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>deal_stage</code></td><td>Quotation/Negotiation/Closure</td></tr>
+            <tr><td><code>validity_days</code></td><td>Set by TM</td></tr>
+            <tr><td><code>confirmed_at</code></td><td>Deal confirmation date</td></tr>
+            <tr><td><code>validity_expires_at</code></td><td>Auto-calculated</td></tr>
+            <tr><td><code>lapse_deadline</code></td><td>14-day window post-approval</td></tr>
+            <tr><td><code>re_raised_from</code></td><td>Links to original request</td></tr>
+            <tr><td><code>zone</code></td><td>N/S/E/W</td></tr>
+            <tr><td><code>dealer_code</code></td><td>FK to dealers table</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 7: BUILD STATUS ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">Build Status — What's Done, What's Pending</div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">✅</div>
+      <div class="progress-content">
+        <div class="progress-title">DB Schema — all migrations run <span class="badge badge-done" style="margin-left:8px">Done</span></div>
+        <div class="progress-detail">All tables created. 74 users seeded. 306 dealers. Escalation rules. All validity columns present.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">✅</div>
+      <div class="progress-content">
+        <div class="progress-title">User hierarchy — all India <span class="badge badge-done" style="margin-left:8px">Done</span></div>
+        <div class="progress-detail">54 TMs, 11 RSMs, 4 ZSMs, 1 NSM, 1 CM, SC. Manager_id FK set. Zone + region assigned.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">✅</div>
+      <div class="progress-content">
+        <div class="progress-title">Login + JWT auth <span class="badge badge-done" style="margin-left:8px">Done</span></div>
+        <div class="progress-detail">Real email login. JWT carries zone/region. Role-based dashboard routing.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">✅</div>
+      <div class="progress-content">
+        <div class="progress-title">Approval routing by discount tier <span class="badge badge-done" style="margin-left:8px">Done</span></div>
+        <div class="progress-detail">SDR% → correct approver logic. RSM/ZSM/NSM/CM routing working.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">🔶</div>
+      <div class="progress-content">
+        <div class="progress-title">Dealer/Hospital dropdown <span class="badge badge-partial" style="margin-left:8px">Partial</span></div>
+        <div class="progress-detail">306 dealers in DB. Dropdown wired but not fully tested. Search by name/code needed. Need to verify it saves dealer_code correctly on submission.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">🔶</div>
+      <div class="progress-content">
+        <div class="progress-title">Deal confirmation flow (Hospital Accept/Decline) <span class="badge badge-partial" style="margin-left:8px">Partial</span></div>
+        <div class="progress-detail">Schema supports it. UI for TM to confirm/decline not fully built. confirmed_at and validity_expires_at not auto-calculating on frontend.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">Re-raise flow <span class="badge badge-todo" style="margin-left:8px">Not built</span></div>
+        <div class="progress-detail">re_raised_from column exists in DB. UI for re-raise button + pre-filled form not built. Needs to work for: Rejected, Lapsed, Hospital Declined, Expired.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">Auto-lapse (14-day window) <span class="badge badge-todo" style="margin-left:8px">Not built</span></div>
+        <div class="progress-detail">Logic designed, not implemented. Needs a scheduled job (Supabase pg_cron or n8n) to check approved requests past 14 days and flip status to Lapsed.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">Auto-expire (validity_expires_at) <span class="badge badge-todo" style="margin-left:8px">Not built</span></div>
+        <div class="progress-detail">Same as above — needs scheduled job. When today > validity_expires_at, status → Expired.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">Expiry alert to TM <span class="badge badge-todo" style="margin-left:8px">Not built</span></div>
+        <div class="progress-detail">TM should see a warning banner when deal expires in &lt;14 days. Needs notification system or email (v5 with n8n).</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">End-to-end flow test <span class="badge badge-todo" style="margin-left:8px">Not done</span></div>
+        <div class="progress-detail">Full flow not tested: TM submit → approval → TM confirm → Active → Expiry. Need clean test data and test run before go-live.</div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-icon">❌</div>
+      <div class="progress-content">
+        <div class="progress-title">006_clean_test_data.sql <span class="badge badge-todo" style="margin-left:8px">Not run</span></div>
+        <div class="progress-detail">Pending. Must run before go-live to clear all test requests. User data stays.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 8: WHAT TO BUILD NEXT ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <div class="section-title">Recommended Build Sequence (Before Go-Live)</div>
+    </div>
+
+    <div class="rule-block green">
+      <div class="rule-label">Priority 1 — This week (no Iris needed)</div>
+      1. Fix and test dealer dropdown fully (search + save to DB)<br>
+      2. Build TM deal confirmation UI — "Hospital Accepted" / "Hospital Declined" buttons<br>
+      3. Wire confirmed_at → validity_expires_at calculation<br>
+      4. Build re-raise button + pre-filled form (works for all 4 trigger cases)
+    </div>
+
+    <div class="rule-block blue">
+      <div class="rule-label">Priority 2 — After P1 done</div>
+      5. End-to-end test: full flow with test TM login<br>
+      6. Build expiry warning banner on TM dashboard<br>
+      7. Run 006_clean_test_data.sql<br>
+      8. Pilot go-live with 5–10 real TMs
+    </div>
+
+    <div class="rule-block warn">
+      <div class="rule-label">Priority 3 — Post go-live / v5</div>
+      9. Auto-lapse + auto-expire (scheduled jobs)<br>
+      10. Email notifications via n8n<br>
+      11. Supply Chain feasibility workflow<br>
+      12. Salesforce integration (v6)
+    </div>
+  </div>
+
+  <!-- ─── SECTION 9: OPEN DECISIONS ─── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <div class="section-title">Open Decisions / Questions</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>Options</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Can TM re-raise a Lapsed request? Or must approver approve a new one from scratch?</td>
+          <td>Allow re-raise (recommended) / Force fresh submission</td>
+          <td><span class="badge badge-partial">Decide now</span></td>
+        </tr>
+        <tr>
+          <td>Hospital Declined — can TM re-raise unlimited times?</td>
+          <td>Unlimited / Cap at 2 re-raises / Manager approval needed</td>
+          <td><span class="badge badge-partial">Decide now</span></td>
+        </tr>
+        <tr>
+          <td>Auto-lapse: run as Supabase pg_cron or n8n scheduled job?</td>
+          <td>pg_cron (simpler) / n8n (reuses email infra)</td>
+          <td><span class="badge badge-todo">Decide before v5</span></td>
+        </tr>
+        <tr>
+          <td>Supply Chain role: does SC approve in parallel or after final approval?</td>
+          <td>Parallel (SC sees request as soon as submitted) / Sequential (SC only after Approved)</td>
+          <td><span class="badge badge-todo">Decide before v5</span></td>
+        </tr>
+        <tr>
+          <td>Should rejected requests show in TM dashboard or be hidden?</td>
+          <td>Always show (recommended for audit) / Hidden after 30 days</td>
+          <td><span class="badge badge-partial">Decide now</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+  <div style="text-align:center; color: var(--muted); font-size:11px; padding-bottom: 20px;">
+    SPA System · Coloplast India · Built by Niteesh Gupta · AI-assisted development · 2026
+  </div>
+
+</div>
+</body>
+</html>

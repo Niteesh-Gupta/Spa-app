@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA — Session Checklist</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:wght@300;600&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #161616;
+    --surface2: #1c1c1c;
+    --border: #272727;
+    --border2: #323232;
+    --text: #e4e2dc;
+    --muted: #6b6860;
+    --accent: #c8a96e;
+    --green: #6aad7e;
+    --red: #c47a6a;
+    --blue: #6a9fc4;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-label {
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Session meta */
+  .meta-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .meta-field {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    padding: 12px 14px;
+  }
+  .meta-label {
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .meta-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 100%;
+    padding: 2px 0;
+    outline: none;
+  }
+  .meta-input:focus { border-bottom-color: var(--accent); }
+  .meta-input::placeholder { color: var(--muted); }
+
+  /* Phase block */
+  .phase {
+    margin-bottom: 28px;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .phase-num {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--accent);
+    padding: 2px 8px;
+    letter-spacing: .08em;
+  }
+  .phase-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: .03em;
+  }
+  .phase-rule {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  /* Checklist items */
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 5px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    user-select: none;
+  }
+  .check-item:hover { background: var(--surface); border-color: var(--border); }
+  .check-item.checked { background: #141f16; border-color: #2a4030; }
+  .check-item.checked .check-label { color: var(--muted); text-decoration: line-through; }
+  .check-item.checked .check-box { background: var(--green); border-color: var(--green); color: #0a1a0e; }
+
+  .check-box {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all .15s;
+    color: transparent;
+  }
+
+  .check-label {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+    transition: color .15s;
+  }
+  .check-sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  /* Text areas */
+  .textarea-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px;
+    margin-bottom: 28px;
+  }
+  .textarea-label {
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .textarea-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.7;
+  }
+  .textarea-input::placeholder { color: var(--muted); }
+
+  /* Status bar */
+  .status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .status-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 200px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width .3s;
+  }
+  .status-count { color: var(--text); font-weight: 500; }
+
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 5px 12px;
+    cursor: pointer;
+    letter-spacing: .05em;
+    transition: all .15s;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  .section-intro {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-left: 2px solid var(--border2);
+    border-radius: 0 4px 4px 0;
+  }
+
+  @media (max-width: 500px) {
+    .page { padding: 28px 16px 80px; }
+    .meta-row { grid-template-columns: 1fr; }
+    .status-bar { padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div class="header-label">SPA System · Coloplast India</div>
+    <h1>Session Checklist</h1>
+    <div class="header-sub">Fill this before opening Claude Code. Every session. Takes 5 minutes.</div>
+  </div>
+
+  <!-- Session Meta -->
+  <div class="meta-row">
+    <div class="meta-field">
+      <div class="meta-label">Date</div>
+      <input class="meta-input" id="date-field" type="text" placeholder="e.g. 14-Apr-2026">
+    </div>
+    <div class="meta-field">
+      <div class="meta-label">Estimated time available</div>
+      <input class="meta-input" type="text" placeholder="e.g. 90 minutes">
+    </div>
+    <div class="meta-field">
+      <div class="meta-label">Session goal (one line)</div>
+      <input class="meta-input" type="text" placeholder="e.g. Build deal confirmation UI">
+    </div>
+    <div class="meta-field">
+      <div class="meta-label">Energy / focus level</div>
+      <input class="meta-input" type="text" placeholder="High / Medium / Low">
+    </div>
+  </div>
+
+  <!-- PHASE 1: BEFORE CLAUDE CODE -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">Phase 1</div>
+      <div class="phase-title">Before opening Claude Code</div>
+      <div class="phase-rule">logic first, always</div>
+    </div>
+
+    <div class="section-intro">These are thinking steps. Do them here in Claude.ai, not in Claude Code.</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Review SPA_MASTER_LOGIC document</div>
+        <div class="check-sub">Open it. Check section 7 (build status) and section 8 (build sequence). Know where you are.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Check PROJECT_STATUS.md in repo</div>
+        <div class="check-sub">Is it up to date from last session? If not, update it first.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Define exactly what you're building today — no more than 3 tasks</div>
+        <div class="check-sub">Write them in the "Today's tasks" box below. Vague goal = wasted session.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Are there any logic gaps or open decisions for today's tasks?</div>
+        <div class="check-sub">If yes — resolve them here first. Do NOT start coding with unresolved logic.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Write the Claude Code prompt here before pasting it</div>
+        <div class="check-sub">Use the "Claude Code prompt" box below. A good prompt = fast, clean output.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's tasks -->
+  <div class="textarea-block">
+    <div class="textarea-label">Today's tasks (max 3)</div>
+    <textarea class="textarea-input" placeholder="1. &#10;2. &#10;3. "></textarea>
+  </div>
+
+  <!-- Logic gaps -->
+  <div class="textarea-block">
+    <div class="textarea-label">Logic gaps / decisions to resolve before coding</div>
+    <textarea class="textarea-input" placeholder="Any unclear logic? Any open decision? Resolve here first.&#10;If none — write 'None'. Don't skip this."></textarea>
+  </div>
+
+  <!-- Claude Code prompt -->
+  <div class="textarea-block">
+    <div class="textarea-label">Claude Code prompt (draft it here first)</div>
+    <textarea class="textarea-input" style="min-height:100px" placeholder="Read PROJECT_STATUS.md and docs/SPA_MASTER_LOGIC.md.&#10;Today's tasks:&#10;1. ...&#10;Report what exists for each before starting."></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PHASE 2: DURING SESSION -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">Phase 2</div>
+      <div class="phase-title">During the session</div>
+      <div class="phase-rule">discipline</div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">If Claude Code hits a logic question — come back here to resolve it</div>
+        <div class="check-sub">Don't let Claude Code guess on logic. That's how patchwork happens.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Stay on the 3 tasks. Don't scope creep.</div>
+        <div class="check-sub">New idea mid-session? Add it to the "Parking lot" box below. Do it next session.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Test each task before marking done</div>
+        <div class="check-sub">Don't trust Claude Code's "it should work." Actually test it in the browser.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parking lot -->
+  <div class="textarea-block">
+    <div class="textarea-label">Parking lot — ideas that came up mid-session (for later)</div>
+    <textarea class="textarea-input" placeholder="New ideas or bugs noticed — don't act on them now, just log here."></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PHASE 3: END OF SESSION -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">Phase 3</div>
+      <div class="phase-title">End of session — before closing Claude Code</div>
+      <div class="phase-rule">always close clean</div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Update PROJECT_STATUS.md</div>
+        <div class="check-sub">Mark completed tasks as [x]. Add today's date. Commit to GitHub.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Update SPA_MASTER_LOGIC document if anything changed</div>
+        <div class="check-sub">New decision made? Logic updated? Reflect it in the doc. Don't let it go stale.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Commit all changes to GitHub with a clear message</div>
+        <div class="check-sub">e.g. "feat: deal confirmation UI + hospital decline flow"</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Write the next session prompt</div>
+        <div class="check-sub">While it's fresh — what's next? Write the opening prompt for tomorrow's session.</div>
+      </div>
+    </div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <div class="check-box">✓</div>
+      <div>
+        <div class="check-label">Move parking lot items into master logic or backlog</div>
+        <div class="check-sub">Don't leave them floating. Either add to logic doc or discard.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next session prompt -->
+  <div class="textarea-block">
+    <div class="textarea-label">Next session opening prompt</div>
+    <textarea class="textarea-input" placeholder="Read PROJECT_STATUS.md and docs/SPA_MASTER_LOGIC.md.&#10;Last session completed: ...&#10;Today's tasks: ...&#10;Report current state before starting."></textarea>
+  </div>
+
+  <!-- Session notes -->
+  <div class="textarea-block">
+    <div class="textarea-label">Session notes / what I learned</div>
+    <textarea class="textarea-input" placeholder="Any patterns noticed? Anything to do differently next time?"></textarea>
+  </div>
+
+</div>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <div class="status-progress">
+    <span>Progress</span>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <span class="status-count" id="progress-count">0 / 10</span>
+  </div>
+  <button class="btn-reset" onclick="resetAll()">Reset session</button>
+</div>
+
+<script>
+  // Auto-set date
+  const d = new Date();
+  document.getElementById('date-field').value =
+    d.getDate().toString().padStart(2,'0') + '-' +
+    d.toLocaleString('en',{month:'short'}) + '-' + d.getFullYear();
+
+  function toggle(el) {
+    el.classList.toggle('checked');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.checked');
+    const pct = Math.round((done.length / all.length) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-count').textContent = done.length + ' / ' + all.length;
+  }
+
+  function resetAll() {
+    if (!confirm('Reset all checkboxes for new session?')) return;
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked'));
+    document.querySelectorAll('textarea').forEach(el => el.value = '');
+    document.querySelectorAll('.meta-input').forEach((el, i) => {
+      if (i !== 0) el.value = '';
+    });
+    updateProgress();
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>
