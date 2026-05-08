@@ -1,6 +1,6 @@
 # SPA System — Project Status
 
-**Last updated: 12-Apr-2026**
+**Last updated: 08-May-2026**
 
 ## Live URL
 https://spa-app-orpin.vercel.app
@@ -38,6 +38,11 @@ https://spa-app-orpin.vercel.app
 - [x] Expiry alert + re-raise (lapse cron live; TM re-raise button on Rejected requests)
 - [x] Request number generation moved server-side (fixes SPA-001 collision bug)
 - [x] Status values standardized to Title case (Approved, Rejected, Lapsed, Confirmed)
+- [x] Quotation flow: TM/RSM generates quotation on Approved → status = Quotation Generated
+- [x] Hospital confirmation: TM confirms Accept/Decline from Quotation Generated → Active / Hospital Declined
+- [x] Sales confirmation flow: TM/RSM confirms sales (Yes/Partial/No) from Active → Sales Confirmed / Partially Confirmed / Not Converted
+- [x] Closure flow: TM/RSM closes from any sales-confirmed state → Closed
+- [x] Migration 007: quotation, sales, and closure columns on price_requests (run in Supabase)
 
 ### Phase 4 — Go-Live (in progress)
 - [x] Governance fixes (status casing, zone session restore, f-zone null ref, migrate endpoint)

@@ -216,7 +216,7 @@ router.patch('/:id/confirm', verifyToken, async (req, res) => {
 
   if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
   if (request.created_by !== req.user.id) return res.status(403).json({ error: 'You can only confirm your own requests' });
-  if (request.status !== 'Approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+  if (request.status !== 'Quotation Generated') return res.status(400).json({ error: `Request is not in Quotation Generated status (current status: ${request.status})` });
   if (request.confirmed_at) return res.status(400).json({ error: 'Request has already been confirmed' });
 
   const confirmedAt       = new Date();
@@ -256,13 +256,146 @@ router.patch('/:id/decline', verifyToken, async (req, res) => {
 
   if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
   if (request.created_by !== req.user.id) return res.status(403).json({ error: 'You can only decline your own requests' });
-  if (request.status !== 'Approved') return res.status(400).json({ error: `Request is not approved (current status: ${request.status})` });
+  if (request.status !== 'Quotation Generated') return res.status(400).json({ error: `Request is not in Quotation Generated status (current status: ${request.status})` });
 
   const { data, error: updateErr } = await supabase
     .from('price_requests')
     .update({
       status:     'Hospital Declined',
       updated_at: new Date().toISOString(),
+    })
+    .eq('request_number', id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json(dbToJs(data));
+});
+
+// PATCH /api/requests/:id/generate-quotation — TM or RSM generates quotation
+router.patch('/:id/generate-quotation', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (!['TM', 'RSM'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Only TM or RSM can generate a quotation' });
+  }
+
+  const { data: request, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number, status')
+    .eq('request_number', id)
+    .single();
+
+  if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
+  if (request.status !== 'Approved') {
+    return res.status(400).json({ error: `Request is not Approved (current status: ${request.status})` });
+  }
+
+  const { quotation_number, quotation_date, validity_start_date, validity_end_date, quotation_remarks } = req.body;
+  if (!quotation_number || !quotation_date || !validity_start_date || !validity_end_date) {
+    return res.status(400).json({ error: 'quotation_number, quotation_date, validity_start_date, validity_end_date are required' });
+  }
+
+  const now = new Date().toISOString();
+  const { data, error: updateErr } = await supabase
+    .from('price_requests')
+    .update({
+      status:                  'Quotation Generated',
+      quotation_number,
+      quotation_date,
+      validity_start_date,
+      validity_end_date,
+      quotation_remarks:       quotation_remarks || null,
+      quotation_generated_at:  now,
+      quotation_generated_by:  req.user.id,
+      lapse_deadline:          null,
+      updated_at:              now,
+    })
+    .eq('request_number', id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json(dbToJs(data));
+});
+
+// PATCH /api/requests/:id/confirm-sales — TM or RSM confirms sales outcome
+router.patch('/:id/confirm-sales', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (!['TM', 'RSM'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Only TM or RSM can confirm sales' });
+  }
+
+  const { data: request, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number, status')
+    .eq('request_number', id)
+    .single();
+
+  if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
+  if (request.status !== 'Active') {
+    return res.status(400).json({ error: `Request is not Active (current status: ${request.status})` });
+  }
+
+  const { sales_done, invoice_number, invoice_date, quantity_sold, confirmed_value, sales_remarks } = req.body;
+  if (!['Yes', 'Partial', 'No'].includes(sales_done)) {
+    return res.status(400).json({ error: "sales_done must be 'Yes', 'Partial', or 'No'" });
+  }
+
+  const statusMap = { Yes: 'Sales Confirmed', Partial: 'Partially Confirmed', No: 'Not Converted' };
+  const now = new Date().toISOString();
+
+  const { data, error: updateErr } = await supabase
+    .from('price_requests')
+    .update({
+      status:              statusMap[sales_done],
+      sales_done,
+      invoice_number:      invoice_number      || null,
+      invoice_date:        invoice_date        || null,
+      quantity_sold:       quantity_sold       || null,
+      confirmed_value:     confirmed_value     || null,
+      sales_remarks:       sales_remarks       || null,
+      sales_confirmed_at:  now,
+      sales_confirmed_by:  req.user.id,
+      updated_at:          now,
+    })
+    .eq('request_number', id)
+    .select()
+    .single();
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+  res.json(dbToJs(data));
+});
+
+// PATCH /api/requests/:id/close — TM or RSM closes a confirmed/unconverted deal
+router.patch('/:id/close', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (!['TM', 'RSM'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Only TM or RSM can close a request' });
+  }
+
+  const { data: request, error: fetchErr } = await supabase
+    .from('price_requests')
+    .select('id, request_number, status')
+    .eq('request_number', id)
+    .single();
+
+  if (fetchErr || !request) return res.status(404).json({ error: 'Request not found' });
+  const closeable = ['Sales Confirmed', 'Partially Confirmed', 'Not Converted'];
+  if (!closeable.includes(request.status)) {
+    return res.status(400).json({ error: `Cannot close a request with status '${request.status}'` });
+  }
+
+  const now = new Date().toISOString();
+  const { data, error: updateErr } = await supabase
+    .from('price_requests')
+    .update({
+      status:     'Closed',
+      closed_at:  now,
+      closed_by:  req.user.id,
+      updated_at: now,
     })
     .eq('request_number', id)
     .select()

@@ -37,6 +37,7 @@ router.post('/run-lapse-check', async (req, res) => {
     .select('id, request_number')
     .eq('status', 'Approved')
     .is('confirmed_at', null)
+    .is('quotation_generated_at', null)
     .lt('lapse_deadline', now);
 
   if (fetchErr) return res.status(500).json({ error: fetchErr.message });

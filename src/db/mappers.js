@@ -76,6 +76,23 @@ function dbToJs(row) {
     reRaisedFrom:       row.re_raised_from,
     extraInfo:          row.extra_info,
     npd:                row.npd,
+    // Migration 007 — quotation
+    quotationNumber:    row.quotation_number,
+    quotationDate:      row.quotation_date,
+    validityStartDate:  row.validity_start_date,
+    validityEndDate:    row.validity_end_date,
+    quotationRemarks:   row.quotation_remarks,
+    quotationGeneratedAt: row.quotation_generated_at,
+    // Migration 007 — sales
+    salesDone:          row.sales_done,
+    invoiceNumber:      row.invoice_number,
+    invoiceDate:        row.invoice_date,
+    quantitySold:       row.quantity_sold,
+    confirmedValue:     row.confirmed_value,
+    salesRemarks:       row.sales_remarks,
+    salesConfirmedAt:   row.sales_confirmed_at,
+    // Migration 007 — closure
+    closedAt:           row.closed_at,
   };
 }
 

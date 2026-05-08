@@ -366,6 +366,15 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
     <div class="kpi k-red"><div class="kpi-label">Rejected</div><div class="kpi-val" id="k-rejected">0</div></div>
     <div class="kpi k-purple"><div class="kpi-label">Re-raised</div><div class="kpi-val" id="k-reraised">0</div></div>
   </div>
+  <div class="kpi-row">
+    <div class="kpi k-amber"><div class="kpi-label">Quotation Pending</div><div class="kpi-val" id="k-quot-pending">0</div></div>
+    <div class="kpi k-amber"><div class="kpi-label">Hospital Confirmation Pending</div><div class="kpi-val" id="k-hosp-confirm">0</div></div>
+    <div class="kpi k-green"><div class="kpi-label">Active Deals</div><div class="kpi-val" id="k-active">0</div></div>
+    <div class="kpi k-green"><div class="kpi-label">Sales Confirmed</div><div class="kpi-val" id="k-sales-confirmed">0</div></div>
+    <div class="kpi k-red"><div class="kpi-label">Not Converted</div><div class="kpi-val" id="k-not-converted">0</div></div>
+    <div class="kpi k-total"><div class="kpi-label">Closed</div><div class="kpi-val" id="k-closed">0</div></div>
+    <div class="kpi k-purple"><div class="kpi-label">Lapsed / Expired</div><div class="kpi-val" id="k-lapsed-expired">0</div></div>
+  </div>
 
   <div class="card">
     <div class="card-hd"><span class="card-title">⏳ Pending Action</span></div>
@@ -644,6 +653,92 @@ label.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:upper
   </div>
 </div>
 
+<!-- GENERATE QUOTATION MODAL -->
+<div class="overlay" id="quot-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">📄 Generate Quotation</div>
+      <button class="modal-close" onclick="document.getElementById('quot-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="quot-info" style="background:var(--surface2);border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.9;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Quotation Number <span style="color:var(--red)">*</span></label>
+          <input class="form-inp" id="quot-number" type="text" placeholder="e.g. Q-2026-001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quotation Date <span style="color:var(--red)">*</span></label>
+          <input class="form-inp" id="quot-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Validity Start Date <span style="color:var(--red)">*</span></label>
+          <input class="form-inp" id="quot-validity-start" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Validity End Date <span style="color:var(--red)">*</span></label>
+          <input class="form-inp" id="quot-validity-end" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Remarks</label>
+        <textarea class="form-inp" id="quot-remarks" rows="3" placeholder="Optional notes…" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('quot-overlay').classList.remove('open')">Cancel</button>
+      <button class="btn btn-navy btn-sm" onclick="submitGenerateQuotation()">Save Quotation</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM SALES MODAL -->
+<div class="overlay" id="sales-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">💰 Confirm Sales</div>
+      <button class="modal-close" onclick="document.getElementById('sales-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Sales Done <span style="color:var(--red)">*</span></label>
+          <select class="form-inp" id="sales-done">
+            <option value="">— Select —</option>
+            <option value="Yes">Yes — Full Sale</option>
+            <option value="Partial">Partial Sale</option>
+            <option value="No">No — Not Converted</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Invoice Number</label>
+          <input class="form-inp" id="sales-invoice-number" type="text" placeholder="INV-XXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Invoice Date</label>
+          <input class="form-inp" id="sales-invoice-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity Sold</label>
+          <input class="form-inp" id="sales-quantity" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmed Value (₹)</label>
+          <input class="form-inp" id="sales-value" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Remarks</label>
+        <textarea class="form-inp" id="sales-remarks" rows="3" placeholder="Optional notes…" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('sales-overlay').classList.remove('open')">Cancel</button>
+      <button class="btn btn-navy btn-sm" onclick="submitConfirmSales()">Confirm Sales</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -842,8 +937,17 @@ function tierBadge(t){
   return `<span class="tier-badge ${m[t]||''}">${lbl[t]||t}</span>`;
 }
 function statusBadge(s){
-  if(s==="Approved") return `<span class="badge b-green">✓ Approved</span>`;
-  if(s==="Rejected") return `<span class="badge b-red">✕ Rejected</span>`;
+  if(s==="Approved")             return `<span class="badge b-green">✓ Approved</span>`;
+  if(s==="Rejected")             return `<span class="badge b-red">✕ Rejected</span>`;
+  if(s==="Quotation Generated")  return `<span class="badge b-teal">📄 Quotation Generated</span>`;
+  if(s==="Active")               return `<span class="badge b-green">● Active</span>`;
+  if(s==="Sales Confirmed")      return `<span class="badge b-green">✓ Sales Confirmed</span>`;
+  if(s==="Partially Confirmed")  return `<span class="badge b-teal">~ Partially Confirmed</span>`;
+  if(s==="Not Converted")        return `<span class="badge b-red">✕ Not Converted</span>`;
+  if(s==="Closed")               return `<span class="badge b-purple">🔒 Closed</span>`;
+  if(s==="Lapsed")               return `<span class="badge b-red">⌛ Lapsed</span>`;
+  if(s==="Expired")              return `<span class="badge b-red">⌛ Expired</span>`;
+  if(s==="Hospital Declined")    return `<span class="badge b-red">✕ Hospital Declined</span>`;
   return `<span class="badge b-amber">⏳ ${s}</span>`;
 }
 function discClass(d){
@@ -983,6 +1087,14 @@ function renderDash(){
   document.getElementById('k-rejected').textContent=rejected;
   document.getElementById('k-reraised').textContent=reraised;
 
+  document.getElementById('k-quot-pending').textContent=requests.filter(r=>r.status==='Approved').length;
+  document.getElementById('k-hosp-confirm').textContent=requests.filter(r=>r.status==='Quotation Generated').length;
+  document.getElementById('k-active').textContent=requests.filter(r=>r.status==='Active').length;
+  document.getElementById('k-sales-confirmed').textContent=requests.filter(r=>['Sales Confirmed','Partially Confirmed'].includes(r.status)).length;
+  document.getElementById('k-not-converted').textContent=requests.filter(r=>r.status==='Not Converted').length;
+  document.getElementById('k-closed').textContent=requests.filter(r=>r.status==='Closed').length;
+  document.getElementById('k-lapsed-expired').textContent=requests.filter(r=>['Lapsed','Expired'].includes(r.status)).length;
+
   // ── Role-filtered dataset for the dashboard table ──
   var visible = getRoleVisibleRequests();
   var myPending = visible.filter(r=>(r.status||'').startsWith('Pending'));
@@ -1026,7 +1138,10 @@ function renderDash(){
         ${canAct?`<button class="btn btn-green btn-xs" onclick="advanceStatus('${r.id}')">Approve</button>
         <button class="btn btn-red btn-xs" onclick="rejectRequest('${r.id}')">Reject</button>`:''}
         ${_role==='TM'&&['Rejected','Lapsed','Hospital Declined','Expired'].includes(r.status)&&!requests.find(x=>x.linkedTo===r.id)?`<button class="btn btn-accent btn-xs" onclick="raiseAgain('${r.id}')">↑ Re-raise</button>`:''}
-        ${_role==='TM'&&r.status==='Approved'&&r.dealStage!=='Confirmed'&&r.dealStage!=='Lapsed'?`<button class="btn btn-green btn-xs" onclick="confirmDeal('${r.id}')">✓ Hospital Accepted</button><button class="btn btn-red btn-xs" onclick="declineDeal('${r.id}')">✕ Hospital Declined</button>`:''}
+        ${['TM','RSM'].includes(_role)&&r.status==='Approved'?`<button class="btn btn-navy btn-xs" onclick="openGenerateQuotationModal('${r.id}')">📄 Generate Quotation</button>`:''}
+        ${_role==='TM'&&r.status==='Quotation Generated'&&r.tm===_name?`<button class="btn btn-green btn-xs" onclick="confirmDeal('${r.id}')">✓ Hospital Accepted</button><button class="btn btn-red btn-xs" onclick="declineDeal('${r.id}')">✕ Hospital Declined</button>`:''}
+        ${['TM','RSM'].includes(_role)&&r.status==='Active'?`<button class="btn btn-navy btn-xs" onclick="openConfirmSalesModal('${r.id}')">💰 Confirm Sales</button>`:''}
+        ${['TM','RSM'].includes(_role)&&['Sales Confirmed','Partially Confirmed','Not Converted'].includes(r.status)?`<button class="btn btn-ghost btn-xs" onclick="closeRequest('${r.id}')">🔒 Close</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -1657,27 +1772,43 @@ function openDetail(id){
   `;
 
   const ft=document.getElementById('det-ft');
-  const myTier      = _role && _role!=='TM' && _role!=='SC';
-  const canAct      = myTier && r.status===`Pending ${_role}`;
-  const canConfirm  = _role==='TM' && r.status==='Approved' && r.tm===_name && !r.confirmedAt;
-  const canReraise  = _role==='TM' && ['Rejected','Lapsed','Hospital Declined','Expired'].includes(r.status) && r.tm===_name && !reraised;
+  const myTier              = _role && _role!=='TM' && _role!=='SC';
+  const canAct              = myTier && r.status===`Pending ${_role}`;
+  const canGenerateQuotation= ['TM','RSM'].includes(_role) && r.status==='Approved';
+  const canConfirm          = _role==='TM' && r.status==='Quotation Generated' && r.tm===_name && !r.confirmedAt;
+  const canConfirmSales     = ['TM','RSM'].includes(_role) && r.status==='Active';
+  const canClose            = ['TM','RSM'].includes(_role) && ['Sales Confirmed','Partially Confirmed','Not Converted'].includes(r.status);
+  const canReraise          = _role==='TM' && ['Rejected','Lapsed','Hospital Declined','Expired'].includes(r.status) && r.tm===_name && !reraised;
 
   if(canAct){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <button class="btn btn-red btn-sm" onclick="rejectRequest('${r.id}');closeModal();renderDash();">✕ Reject</button>
       <button class="btn btn-green btn-sm" onclick="advanceStatus('${r.id}');closeModal();renderDash();">✓ Approve</button>`;
+  } else if(canGenerateQuotation){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-navy btn-sm" onclick="closeModal();openGenerateQuotationModal('${r.id}')">📄 Generate Quotation</button>`;
   } else if(canConfirm){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <button class="btn btn-red btn-sm" onclick="declineDeal('${r.id}');closeModal();">✕ Hospital Declined</button>
       <button class="btn btn-green btn-sm" onclick="confirmDeal('${r.id}');closeModal();">✓ Hospital Accepted</button>`;
+  } else if(canConfirmSales){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-navy btn-sm" onclick="closeModal();openConfirmSalesModal('${r.id}')">💰 Confirm Sales</button>`;
+  } else if(canClose){
+    ft.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal();closeRequest('${r.id}')">🔒 Close Request</button>`;
+  } else if(r.status==='Closed'){
+    ft.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`;
   } else if(canReraise){
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <button class="btn btn-accent btn-sm" onclick="raiseAgain('${r.id}')">↑ Re-raise with Revised Price</button>`;
   } else if(r.status.startsWith('Pending')&&myTier&&!canAct){
-    // Approver viewing a request that isn't at their tier — read only
     ft.innerHTML=`
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       <span style="font-size:11px;color:var(--muted);padding:6px 12px;">This request is at a different approval tier — view only.</span>`;
@@ -1727,6 +1858,131 @@ function buildTimeline(r,h){
 
 function closeModal(){
   document.getElementById('det-overlay').classList.remove('open');
+}
+
+// ── Generate Quotation ────────────────────────────────────────────────────────
+var _quotModalId = null;
+
+function openGenerateQuotationModal(id){
+  _quotModalId = id;
+  const r = requests.find(x=>x.id===id);
+  if(!r) return;
+  // Reset fields
+  document.getElementById('quot-number').value = '';
+  document.getElementById('quot-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('quot-validity-start').value = '';
+  document.getElementById('quot-validity-end').value = '';
+  document.getElementById('quot-remarks').value = '';
+  // Read-only info
+  const skuSummary = Array.isArray(r.skus) && r.skus.length
+    ? r.skus.map(s=>`${s.product||s.name||'—'} (qty ${s.quantity||'—'})`).join(', ')
+    : (r.product||'—');
+  document.getElementById('quot-info').innerHTML =
+    `<strong>Hospital / Customer:</strong> ${r.customer||'—'}<br>`+
+    `<strong>Dealer:</strong> ${r.dealer||'—'}<br>`+
+    `<strong>Approved Discount:</strong> ${r.sdrPct!=null?r.sdrPct+'%':'—'}<br>`+
+    `<strong>Product / SKU:</strong> ${skuSummary}`;
+  document.getElementById('quot-overlay').classList.add('open');
+}
+
+async function submitGenerateQuotation(){
+  const id = _quotModalId;
+  const quotation_number     = document.getElementById('quot-number').value.trim();
+  const quotation_date       = document.getElementById('quot-date').value;
+  const validity_start_date  = document.getElementById('quot-validity-start').value;
+  const validity_end_date    = document.getElementById('quot-validity-end').value;
+  const quotation_remarks    = document.getElementById('quot-remarks').value.trim();
+
+  if(!quotation_number || !quotation_date || !validity_start_date || !validity_end_date){
+    showToast('Please fill all required fields','e'); return;
+  }
+  try{
+    const res = await fetch(API_BASE+'/api/requests/'+id+'/generate-quotation',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body: JSON.stringify({quotation_number,quotation_date,validity_start_date,validity_end_date,quotation_remarks:quotation_remarks||undefined})
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error:'HTTP '+res.status}));
+      showToast('Failed: '+(err.error||res.status),'e'); return;
+    }
+    const updated = await res.json();
+    const idx = requests.findIndex(x=>x.id===id);
+    if(idx!==-1) requests[idx]=updated;
+    document.getElementById('quot-overlay').classList.remove('open');
+    showToast(id+' — Quotation generated. Status: Quotation Generated.','s');
+    renderDash(); renderAll(); updateBadge();
+  }catch(e){ showToast('Network error — could not save quotation','e'); }
+}
+
+// ── Confirm Sales ─────────────────────────────────────────────────────────────
+var _salesModalId = null;
+
+function openConfirmSalesModal(id){
+  _salesModalId = id;
+  document.getElementById('sales-done').value = '';
+  document.getElementById('sales-invoice-number').value = '';
+  document.getElementById('sales-invoice-date').value = '';
+  document.getElementById('sales-quantity').value = '';
+  document.getElementById('sales-value').value = '';
+  document.getElementById('sales-remarks').value = '';
+  document.getElementById('sales-overlay').classList.add('open');
+}
+
+async function submitConfirmSales(){
+  const id = _salesModalId;
+  const sales_done      = document.getElementById('sales-done').value;
+  const invoice_number  = document.getElementById('sales-invoice-number').value.trim();
+  const invoice_date    = document.getElementById('sales-invoice-date').value;
+  const quantity_sold   = document.getElementById('sales-quantity').value;
+  const confirmed_value = document.getElementById('sales-value').value;
+  const sales_remarks   = document.getElementById('sales-remarks').value.trim();
+
+  if(!sales_done){ showToast('Please select Sales Done','e'); return; }
+  try{
+    const body = {sales_done};
+    if(invoice_number)  body.invoice_number  = invoice_number;
+    if(invoice_date)    body.invoice_date    = invoice_date;
+    if(quantity_sold)   body.quantity_sold   = Number(quantity_sold);
+    if(confirmed_value) body.confirmed_value = Number(confirmed_value);
+    if(sales_remarks)   body.sales_remarks   = sales_remarks;
+
+    const res = await fetch(API_BASE+'/api/requests/'+id+'/confirm-sales',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error:'HTTP '+res.status}));
+      showToast('Failed: '+(err.error||res.status),'e'); return;
+    }
+    const updated = await res.json();
+    const idx = requests.findIndex(x=>x.id===id);
+    if(idx!==-1) requests[idx]=updated;
+    document.getElementById('sales-overlay').classList.remove('open');
+    showToast(id+' — Sales confirmed: '+updated.status,'s');
+    renderDash(); renderAll(); updateBadge();
+  }catch(e){ showToast('Network error — could not confirm sales','e'); }
+}
+
+// ── Close Request ─────────────────────────────────────────────────────────────
+async function closeRequest(id){
+  if(!confirm('Close this request? This cannot be undone.')) return;
+  try{
+    const res = await fetch(API_BASE+'/api/requests/'+id+'/close',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token}
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error:'HTTP '+res.status}));
+      showToast('Failed: '+(err.error||res.status),'e'); return;
+    }
+    const updated = await res.json();
+    const idx = requests.findIndex(x=>x.id===id);
+    if(idx!==-1) requests[idx]=updated;
+    showToast(id+' — Closed.','s');
+    renderDash(); renderAll(); updateBadge();
+  }catch(e){ showToast('Network error — could not close request','e'); }
 }
 
 // ══════════════════════════════════════════
