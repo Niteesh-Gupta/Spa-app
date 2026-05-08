@@ -291,9 +291,9 @@ router.patch('/:id/generate-quotation', verifyToken, async (req, res) => {
     return res.status(400).json({ error: `Request is not Approved (current status: ${request.status})` });
   }
 
-  const { quotation_number, quotation_date, validity_start_date, validity_end_date, quotation_remarks } = req.body;
-  if (!quotation_number || !quotation_date || !validity_start_date || !validity_end_date) {
-    return res.status(400).json({ error: 'quotation_number, quotation_date, validity_start_date, validity_end_date are required' });
+  const { quotation_to, quotation_number, quotation_date, validity_start_date, validity_end_date, quotation_remarks } = req.body;
+  if (!quotation_to || !quotation_number || !quotation_date || !validity_start_date || !validity_end_date) {
+    return res.status(400).json({ error: 'quotation_to, quotation_number, quotation_date, validity_start_date, validity_end_date are required' });
   }
 
   const now = new Date().toISOString();
@@ -301,6 +301,7 @@ router.patch('/:id/generate-quotation', verifyToken, async (req, res) => {
     .from('price_requests')
     .update({
       status:                  'Quotation Generated',
+      quotation_to,
       quotation_number,
       quotation_date,
       validity_start_date,

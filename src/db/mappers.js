@@ -77,6 +77,7 @@ function dbToJs(row) {
     extraInfo:          row.extra_info,
     npd:                row.npd,
     // Migration 007 — quotation
+    quotationTo:        row.quotation_to,
     quotationNumber:    row.quotation_number,
     quotationDate:      row.quotation_date,
     validityStartDate:  row.validity_start_date,
